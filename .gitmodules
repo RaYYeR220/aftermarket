@@ -13,3 +13,10 @@
 [submodule "contracts/lib/spend-permissions"]
 	path = contracts/lib/spend-permissions
 	url = https://github.com/coinbase/spend-permissions
+	# Provenance only. Nothing here is compiled or remapped: it is the upstream source the
+	# SpendPermission struct in src/interfaces/ISpendPermissionManager.sol was retyped from, kept
+	# so the two can be diffed. Its own test dependencies nest deep enough to blow past the
+	# Windows 260-character path limit, which used to abort the whole recursive init before it
+	# reached lib/verifications, so it is skipped by default. Fetch it with
+	# `git submodule update --init --checkout contracts/lib/spend-permissions`.
+	update = none
