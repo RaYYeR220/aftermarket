@@ -89,6 +89,14 @@ Forks Base at the current head and deploys the entire stack — `TradingCalendar
 `AftermarketCredit`, `AftermarketVault` — wired to the real B20 tokens, the real Chainlink
 aggregators and the real Slipstream pools discovered from the factory at run time.
 
+One exception: `test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` re-forks at block
+**50,997,343**. Its subject is a live market state rather than a property of the code — AMZNc's pool
+disagreeing with its frozen anchor by more than the session band — and that state comes and goes. It
+held all through the 2026-09-05 close and by Monday evening had closed to 145 bps, inside the 300
+bps band, at which point the oracle correctly went back to marking AMZNc and an unpinned assertion
+would have failed. A test that only passes while a market is dislocated will eventually report a
+fault that is not there, so this one is pinned. Every other test in the file runs at head.
+
 | test | what it proves |
 |---|---|
 | `test_lenderSuppliesRealUsdcAndReceivesShares` | a lender deposits real USDC into the ERC-4626 vault and is credited shares at a 1:1 price on an empty market |
@@ -100,7 +108,8 @@ aggregators and the real Slipstream pools discovered from the factory at run tim
 
 ### The AMZNc case
 
-At the time of writing, straight off mainnet with no construction whatsoever:
+At block 50,997,343, straight off mainnet with no construction whatsoever (the figures below were
+taken during the weekend before, at a comparable point in the same close):
 
 ```
 AMZNc verdict          UNTRUSTED_DIVERGENT

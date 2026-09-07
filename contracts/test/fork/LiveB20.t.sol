@@ -41,6 +41,12 @@ contract LiveB20Test is ForkBase {
     ///      is to observe it, not to move it.
     uint256 internal constant AMZN_BUY = 3_000e6;
 
+    /// @notice 2026-09-07 12:27:13 UTC, Labor Day. AMZNc's Chainlink anchor had been frozen since
+    ///         Friday's close while the pool kept trading, and the two disagreed by 897 bps against
+    ///         a 300 bps band. The same block every `--block` read in JUDGES.md and PROOF.md uses.
+    /// @dev Needs an archive endpoint, like the rest of `test/fork`.
+    uint256 internal constant BLOCK_AMZN_DIVERGED = 50_997_343;
+
     function setUp() public {
         _forkLatest();
         _deployStack();
@@ -161,7 +167,27 @@ contract LiveB20Test is ForkBase {
     ///      `liquidate` for the whole position while the debt stayed outstanding. What keeps the
     ///      replacement safe is the asymmetry asserted below: the unpriceable leg is worth nothing
     ///      to the borrower AND cannot be seized by anybody.
+    ///
+    ///      **This is the one test in this file that is pinned rather than run at head**, and the
+    ///      reason is worth stating. The condition it is about - AMZNc's pool disagreeing with its
+    ///      frozen anchor by more than the session's band - is a live market state, not a property
+    ///      of the code. It held for the whole of the 2026-09-05 close; by Monday evening the gap
+    ///      had closed from 897 bps to 145, back inside the 300 bps weekend band, and the oracle
+    ///      went back to marking AMZNc. That is the mechanism working, and it also means an
+    ///      unpinned assertion here would fail every time the market agreed with itself. A test
+    ///      that only passes while a market happens to be dislocated is a test that will one day
+    ///      report a fault that is not there, so the block is fixed. For the live gap, run
+    ///      `pnpm verify:onchain`; for the same behaviour at other historical blocks, see
+    ///      `WeekendReplay`.
     function test_amznDivergenceFreezesRiskAndSeizureButNotTheCure() public {
+        _forkAt(BLOCK_AMZN_DIVERGED);
+        _deployStack();
+        _attest(lender);
+        _attest(borrower);
+        _attest(borrowerTwo);
+        _attest(liquidator);
+        console2.log("pinned block ", block.number);
+
         _supplyLiquidity();
 
         // The line is opened and drawn against NVDAc first, so that when AMZNc joins the basket
