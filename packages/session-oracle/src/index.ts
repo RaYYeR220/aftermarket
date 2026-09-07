@@ -23,7 +23,8 @@ export { explainVerdict, VERDICT_GUIDANCE } from "./verdict.js";
 export {
   DEPLOYMENTS,
   getDeployment,
-  getDeploymentsForChain,
+  getMorphoMarketId,
+  getOracleAddress,
   getSupportedChainIds,
 } from "./deployments.js";
-export type { DeployedMarket, DeploymentRegistry } from "./deployments.js";
+export type { ChainDeployment, DeploymentRegistry } from "./deployments.js";

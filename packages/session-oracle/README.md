@@ -74,11 +74,13 @@ if (result.ok) {
 - **`@aftermarket/session-oracle/react`** — optional `useQuote` / `usePrice`
   hooks built on wagmi. Not part of the main entry point, so a backend
   script or keeper never pulls in React.
-- **`DEPLOYMENTS`**, `getDeployment(chainId, name?)`,
-  `getDeploymentsForChain(chainId)` — a typed registry of deployed oracle
-  addresses per chain, generated from `contracts/deployments/<chainId>.json`
-  at build time. No deployments yet on a chain (or in this checkout) just
-  means an empty array back, never a thrown error.
+- **`DEPLOYMENTS`**, `getDeployment(chainId)`, `getOracleAddress(chainId, symbol)`,
+  `getMorphoMarketId(chainId, symbol)`, `getSupportedChainIds()` — a typed
+  registry of the full protocol deployment per chain (ten core contracts,
+  every production oracle keyed by symbol, every Morpho Blue market id),
+  generated from `contracts/deployments/<chainId>.json` at build time. No
+  deployment yet on a chain just means `undefined` back, never a thrown
+  error.
 
 ## Verdicts
 
@@ -189,19 +191,23 @@ for an 8-decimal collateral token against a 6-decimal loan token produces
 ## Deployments registry
 
 ```ts
-import { getDeployment } from "@aftermarket/session-oracle";
+import { getDeployment, getOracleAddress } from "@aftermarket/session-oracle";
 
-const market = getDeployment(8453, "AMZNc-USDC");
-if (market) {
-  // market.oracle, market.collateralToken, market.loanToken, ...
+const base = getDeployment(8453);
+if (base) {
+  // base.credit, base.vault, base.oracleFactory, base.negativeControl, ...
+  // base.oracles: { AAPLc, AMZNc, GOOGLc, METAc, NVDAc, TSLAc }
+  // base.morphoMarkets: { NVDAc: "0x<market id>" }
 }
+
+const amznOracle = getOracleAddress(8453, "AMZNc"); // 0x6FEEF51B...
 ```
 
 Backed by `contracts/deployments/<chainId>.json` (one file per chain),
 regenerated into `src/deployments.generated.ts` before every build. No file
 for a chain — or no `contracts/deployments/` directory at all, as in a fresh
-checkout before the first deployment — just means an empty registry; nothing
-here throws or fails a build over a missing deployment.
+checkout before the first deployment — just means no entry for that chain;
+nothing here throws or fails a build over a missing deployment.
 
 ## Package layout
 

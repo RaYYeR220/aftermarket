@@ -1,67 +1,86 @@
-import type { Address } from "viem";
+import type { Address, Hex } from "viem";
 import { DEPLOYMENTS_BY_CHAIN } from "./deployments.generated.js";
 
-/** One deployed `AftermarketOracle` and the Morpho market it prices. */
-export interface DeployedMarket {
-  /** Human label, e.g. `"AMZNc-USDC"`. Not used onchain; for display and lookup only. */
-  name: string;
-  oracle: Address;
-  collateralToken: Address;
-  loanToken: Address;
-  calendar: Address;
-  feed: Address;
-  pool: Address;
+/**
+ * The full Aftermarket protocol deployment on one chain: the ten core contracts, every production
+ * `AftermarketOracle` keyed by its B20 asset symbol, every Morpho Blue market id keyed by the
+ * collateral symbol it was created for, and the negative-control oracle used to prove the honest
+ * revert path onchain.
+ */
+export interface ChainDeployment {
+  chainId: number;
+  network: string;
+  usdc: Address;
+  tradingCalendar: Address;
+  attesterRegistry: Address;
+  regSGate: Address;
+  sessionRateModel: Address;
+  oracleFactory: Address;
+  swapAdapter: Address;
+  credit: Address;
+  vault: Address;
+  autoRepayer: Address;
+  lens: Address;
+  /** Deliberately misconfigured `AftermarketOracle` kept live to prove the revert path onchain. */
+  negativeControl: Address;
+  /** `AftermarketOracle` addresses keyed by B20 asset symbol, e.g. `"AMZNc"`. */
+  oracles: Readonly<Record<string, Address>>;
+  /** Morpho Blue market ids (bytes32), keyed by the collateral symbol the market was created for. */
+  morphoMarkets: Readonly<Record<string, Hex>>;
 }
 
-/** Deployed markets, keyed by chain id. Empty for any chain with no known deployments. */
-export type DeploymentRegistry = Readonly<Record<number, readonly DeployedMarket[]>>;
+/** Known deployments, keyed by chain id. No entry for a chain means no known deployment there. */
+export type DeploymentRegistry = Readonly<Record<number, ChainDeployment>>;
 
 /**
- * Deployed `AftermarketOracle` markets, generated at build time from
- * `contracts/deployments/<chainId>.json` — one file per chain, each shaped like:
+ * Aftermarket protocol deployments, generated at build time from
+ * `contracts/deployments/<chainId>.json` — one file per chain, shaped like:
  *
  * ```json
  * {
  *   "chainId": 8453,
- *   "markets": [
- *     {
- *       "name": "AMZNc-USDC",
- *       "oracle": "0x...",
- *       "collateralToken": "0x...",
- *       "loanToken": "0x...",
- *       "calendar": "0x...",
- *       "feed": "0x...",
- *       "pool": "0x..."
- *     }
- *   ]
+ *   "network": "base",
+ *   "usdc": "0x...",
+ *   "tradingCalendar": "0x...",
+ *   "attesterRegistry": "0x...",
+ *   "regSGate": "0x...",
+ *   "sessionRateModel": "0x...",
+ *   "oracleFactory": "0x...",
+ *   "swapAdapter": "0x...",
+ *   "credit": "0x...",
+ *   "vault": "0x...",
+ *   "autoRepayer": "0x...",
+ *   "lens": "0x...",
+ *   "negativeControl": "0x...",
+ *   "oracles": { "AMZNc": "0x...", "NVDAc": "0x...", ... },
+ *   "morphoMarkets": { "NVDAc": "0x<market id>" }
  * }
  * ```
  *
  * `scripts/generate-deployments.mjs` reads that directory before every `build`, `typecheck` and
- * `test`. When the directory (or a given chain's file) doesn't exist yet — true for this checkout —
- * this is simply an empty map for that chain: `getDeploymentsForChain` returns `[]` and
- * `getDeployment` returns `undefined`, never a thrown error. Nothing here reads the filesystem at
+ * `test`. When the directory (or a given chain's file) doesn't exist yet, or a record is missing a
+ * required field, that chain is simply absent from this map: `getDeployment` returns `undefined`
+ * and `getSupportedChainIds` omits it — never a thrown error. Nothing here reads the filesystem at
  * runtime, so this is safe to import in a browser bundle.
  */
 export const DEPLOYMENTS: DeploymentRegistry = DEPLOYMENTS_BY_CHAIN;
 
-/** All markets deployed on `chainId`, or `[]` if none are known. */
-export function getDeploymentsForChain(chainId: number): readonly DeployedMarket[] {
-  return DEPLOYMENTS[chainId] ?? [];
+/** The full deployment record for `chainId`, or `undefined` if nothing is known there yet. */
+export function getDeployment(chainId: number): ChainDeployment | undefined {
+  return DEPLOYMENTS[chainId];
 }
 
-/**
- * A single deployed market on `chainId`. With no `name`, returns the first known market for that
- * chain (convenient when there's exactly one). Returns `undefined` when no market matches, rather
- * than throwing — check the result before using it.
- */
-export function getDeployment(chainId: number, name?: string): DeployedMarket | undefined {
-  const markets = getDeploymentsForChain(chainId);
-  if (name === undefined) return markets[0];
-  return markets.find((market) => market.name === name);
+/** The `AftermarketOracle` address for `symbol` on `chainId`, or `undefined` if unknown. */
+export function getOracleAddress(chainId: number, symbol: string): Address | undefined {
+  return DEPLOYMENTS[chainId]?.oracles[symbol];
 }
 
-/** Chain ids with at least one known deployment. */
+/** The Morpho Blue market id for `symbol` on `chainId`, or `undefined` if that market doesn't exist yet. */
+export function getMorphoMarketId(chainId: number, symbol: string): Hex | undefined {
+  return DEPLOYMENTS[chainId]?.morphoMarkets[symbol];
+}
+
+/** Chain ids with a known deployment. */
 export function getSupportedChainIds(): number[] {
   return Object.keys(DEPLOYMENTS).map(Number);
 }

@@ -9,18 +9,57 @@
  */
 
 /**
- * Mirrors `DeployedMarket` in `./deployments.ts`. Duplicated here (rather than
+ * Mirrors `ChainDeployment` in `./deployments.ts`. Duplicated here (rather than
  * imported) so this generated file has no dependency on hand-written source — the generator
  * only ever needs to emit data shaped like this interface, never to import TypeScript logic.
  */
-interface GeneratedMarket {
-  name: string;
-  oracle: `0x${string}`;
-  collateralToken: `0x${string}`;
-  loanToken: `0x${string}`;
-  calendar: `0x${string}`;
-  feed: `0x${string}`;
-  pool: `0x${string}`;
+interface GeneratedChainDeployment {
+  chainId: number;
+  network: string;
+  usdc: `0x${string}`;
+  tradingCalendar: `0x${string}`;
+  attesterRegistry: `0x${string}`;
+  regSGate: `0x${string}`;
+  sessionRateModel: `0x${string}`;
+  oracleFactory: `0x${string}`;
+  swapAdapter: `0x${string}`;
+  credit: `0x${string}`;
+  vault: `0x${string}`;
+  autoRepayer: `0x${string}`;
+  lens: `0x${string}`;
+  negativeControl: `0x${string}`;
+  /** AftermarketOracle addresses keyed by B20 asset symbol, e.g. "AMZNc". */
+  oracles: Readonly<Record<string, `0x${string}`>>;
+  /** Morpho Blue market ids (bytes32), keyed by the collateral symbol the market was created for. */
+  morphoMarkets: Readonly<Record<string, `0x${string}`>>;
 }
 
-export const DEPLOYMENTS_BY_CHAIN: Readonly<Record<number, readonly GeneratedMarket[]>> = {};
+export const DEPLOYMENTS_BY_CHAIN: Readonly<Record<number, GeneratedChainDeployment>> = {
+  8453: {
+    "chainId": 8453,
+    "network": "base",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "tradingCalendar": "0x9a29F81D951fE40ae3C937654bB73f0493EE0Dd9",
+    "attesterRegistry": "0x53a64E3AF9B89386915E66cE810a1d9DDc7D361E",
+    "regSGate": "0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C",
+    "sessionRateModel": "0x6d5152d81982DEb660736fC514761E18533a2343",
+    "oracleFactory": "0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A",
+    "swapAdapter": "0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF",
+    "credit": "0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3",
+    "vault": "0x00751166Ce3fa20a4143a1F0D848978Db73bd53f",
+    "autoRepayer": "0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A",
+    "lens": "0x5A18BdEB02B30b737a2464E02A2a669BF52bC049",
+    "negativeControl": "0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58",
+    "oracles": {
+      "AAPLc": "0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc",
+      "AMZNc": "0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C",
+      "GOOGLc": "0x203cDf7e33eA0d652cA54f4807c9d2d1d081C9aA",
+      "METAc": "0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2",
+      "NVDAc": "0x1E2b20B4703F97710c2600eA73179c6CD1E00b02",
+      "TSLAc": "0x74058d51B3b04Ba09be2aa51ab1CE930Dd3c2C99"
+    },
+    "morphoMarkets": {
+      "NVDAc": "0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479"
+    }
+  },
+};
