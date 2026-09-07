@@ -1,0 +1,18 @@
+{
+  "name": "@aftermarket/session-oracle-solidity",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Solidity interfaces for Aftermarket's session-aware Morpho Blue oracle for Coinbase B20 tokenized equities on Base. Frozen copies of IAftermarketOracle, ITradingCalendar and the shared Quote/Session/Verdict types, with no dependency on the rest of the Aftermarket codebase.",
+  "license": "MIT",
+  "files": [
+    "src"
+  ],
+  "keywords": [
+    "solidity",
+    "morpho-blue",
+    "oracle",
+    "aftermarket",
+    "base",
+    "b20"
+  ]
+}

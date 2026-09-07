@@ -1,0 +1,57 @@
+{
+  "name": "@aftermarket/session-oracle",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Integrator SDK for AftermarketOracle: a market-session-aware Morpho Blue price oracle for Coinbase B20 tokenized equities on Base. Typed Quote decoding, decoded custom-error results, Morpho 1e36 scale helpers, plain-English verdict explanations, and optional React hooks.",
+  "type": "module",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "gen:deployments": "node scripts/generate-deployments.mjs",
+    "build": "node scripts/generate-deployments.mjs && tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "typecheck": "node scripts/generate-deployments.mjs && tsc -p tsconfig.json --noEmit && tsc -p tsconfig.test.json --noEmit",
+    "test": "node scripts/generate-deployments.mjs && vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "viem": "2.56.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "wagmi": ">=2"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "wagmi": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1",
+    "wagmi": "^2.14.11",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=18.11"
+  }
+}
