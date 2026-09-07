@@ -163,9 +163,7 @@ contract AerodromeSwapAdapterTest is Test {
         assertEq(out, 50e6);
         assertEq(nvda.balanceOf(credit), 50e6);
         assertEq(usdc.balanceOf(address(adapter)), 0, "the adapter holds nothing between calls");
-        assertEq(
-            usdc.allowance(address(adapter), address(router)), 0, "and leaves the router no standing allowance"
-        );
+        assertEq(usdc.allowance(address(adapter), address(router)), 0, "and leaves the router no standing allowance");
 
         (address tokenIn, address tokenOut, int24 tickSpacing, address recipient,,, uint256 minOut,) =
             router.lastParams();

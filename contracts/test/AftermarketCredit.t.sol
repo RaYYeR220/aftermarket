@@ -890,8 +890,7 @@ contract AftermarketCreditTest is AftermarketFixture {
         MockEligibility permissive = new MockEligibility();
 
         vm.prank(owner);
-        (bool ok,) =
-            address(credit).call(abi.encodeWithSignature("setEligibility(address)", address(permissive)));
+        (bool ok,) = address(credit).call(abi.encodeWithSignature("setEligibility(address)", address(permissive)));
         assertFalse(ok, "the engine must expose no way to repoint its Reg-S gate");
 
         assertEq(address(credit.eligibility()), address(eligibility), "and the gate is unchanged");
@@ -1708,9 +1707,7 @@ contract AftermarketCreditInvariantTest is AftermarketFixture {
     function invariant_noLineOwesMoreThanTheWholeMarket() public view {
         uint256 total = credit.totalDebtAssets();
         for (uint256 i; i < handler.actorCount(); ++i) {
-            assertLe(
-                credit.debtOf(handler.actorAt(i)), total, "a line was quoted more debt than the market carries"
-            );
+            assertLe(credit.debtOf(handler.actorAt(i)), total, "a line was quoted more debt than the market carries");
         }
     }
 

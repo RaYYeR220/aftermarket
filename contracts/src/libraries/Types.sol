@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 /// @notice Where the US equity market is in its daily cycle, as seen from the chain.
+// forgefmt: disable-start
 enum Session {
     REGULAR,          // 09:30-16:00 ET (13:00 ET on early-close days)
     PRE,              // 04:00-09:30 ET
@@ -43,3 +44,4 @@ struct Quote {
     uint64 nextOpen;         // unix ts of the next regular open
     uint64 lastClose;        // unix ts of the previous regular close
 }
+// forgefmt: disable-end
