@@ -1,0 +1,28 @@
+# What Vercel does not need in the upload.
+#
+# The build is `pnpm build` at the workspace root: it compiles packages/observer and
+# packages/session-oracle with tsc, then runs `next build` in web/. The only thing it reads
+# outside those workspaces is contracts/deployments/<chainId>.json, which stays.
+
+# Installed and built on Vercel, never uploaded.
+node_modules
+.git
+.next
+dist
+*.tsbuildinfo
+
+# Foundry: 191 MB of vendored submodules and 20 MB of compiled artifacts that no
+# TypeScript in this workspace imports. contracts/deployments/ is deliberately kept --
+# packages/session-oracle/scripts/generate-deployments.mjs reads it at build time.
+contracts/lib
+contracts/out
+contracts/cache
+contracts/cache_forge
+contracts/broadcast
+
+# Working material, not build input.
+ui-prototypes
+.playwright-mcp
+.remember
+*.mp4
+.env
