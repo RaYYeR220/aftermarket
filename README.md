@@ -46,14 +46,14 @@ US equity market, and the US equity market was closed. The token, meanwhile, kep
 pnpm verify:onchain      # the same thirteen reads, against Base right now
 ```
 
-Run it. You should get smaller numbers than the ones above, and if you run it during a regular
-session you should get much smaller ones. That is the mechanism, not a retraction.
+Run it. Most of these numbers will have moved, most of them downwards, and inside a regular session
+they should be small across the board. That is the mechanism, not a retraction.
 
-The pinned block is Sunday night: 54 hours into a three-day weekend, 39 hours before the next
-Chainlink print — a closed market near the worst it gets. The gap is a live quantity that resets
-every Friday at 16:00 ET and collapses every Monday at 09:30, so a single reading is a point on a
-distribution rather than a constant. Here is our own re-read 23 hours later, same command, no
-arguments, on Labor Day evening
+The pinned block is Sunday night: 54 hours into a three-day weekend, 35 hours before the next
+Chainlink print — a closed market near the worst it gets. The gap is a live quantity that starts
+accumulating at every Friday close and collapses when the reference reopens, so a single reading is
+a point on a distribution rather than a constant. Here is our own re-read 23 hours later, same
+command, no arguments, on Labor Day evening
 ([`docs/evidence/holiday-2026-09-07.json`](docs/evidence/holiday-2026-09-07.json)):
 
 | asset | Sun 22:17 ET · block 50,979,049 | Mon 17:02 ET · block 51,012,807 |
