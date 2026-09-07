@@ -1,0 +1,97 @@
+{
+  "network": "base-sepolia",
+  "chainId": 84532,
+
+  "notes": [
+    "Coinbase has not listed any B20 tokenized equity on Base Sepolia, and Aerodrome has not deployed a Slipstream CL factory there: `cast code` returns empty for 0xb20000000000000000000078ee7ce2fE4908108C and for 0xf8f2eB4940CFE7d13603DDDD87f123820Fc061Ef against https://sepolia.base.org.",
+    "Every AftermarketOracle therefore has no feed and no pool to bind to, and the asset list below is empty on purpose. DeployCore refuses to run against an empty asset list rather than deploying a lending market with nothing to lend against.",
+    "The chain-level addresses below are all verified live on Base Sepolia and are what a testnet run would use once mock collateral, a mock aggregator and a mock CL pool exist to point the oracles at."
+  ],
+
+  "usdc": "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
+  "spendPermissionManager": "0xf85210B21cC50302F477BA56686d2019dC9b67Ad",
+  "publicERC6492Validator": "0xcfCE48B757601F3f351CB6f434CB0517aEEE293D",
+
+  "aerodrome": {
+    "slipstreamFactory": "0x0000000000000000000000000000000000000000",
+    "swapRouter": "0x0000000000000000000000000000000000000000",
+    "tickSpacing": 10
+  },
+
+  "morpho": {
+    "blue": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "adaptiveCurveIrm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "lltvBps": 7700
+  },
+
+  "regS": {
+    "eas": "0x4200000000000000000000000000000000000021",
+    "indexer": "0xd147a19c3B085Fb9B0c15D2EAAFC6CB086ea849B",
+    "verifiedCountrySchema": "0xef54ae90f47a187acc050ce631c55584fd4273c0ca9456ab21750921c3a84028",
+    "verifiedAccountSchema": "0x2f34a2ffe5f87b2f45fbc7c784896b768d77261e2f24f77341ae43751c765a69"
+  },
+
+  "rateModel": {
+    "baseRateAprBps": 200,
+    "slope1AprBps": 600,
+    "slope2AprBps": 10000,
+    "kinkBps": 8000,
+    "sessionMultiplierBps": [10000, 10000, 10000, 12500, 15000, 16000]
+  },
+
+  "credit": {
+    "maxSlippageBps": 100
+  },
+
+  "oracle": {
+    "twapWindowSeconds": 1800,
+    "stalenessBudgetSeconds": [3600, 21600, 21600, 90000, 262800, 349200],
+    "divergenceBandBps": [200, 400, 400, 800, 1200, 1500],
+    "baseHaircutBps": 100,
+    "haircutSlopeBpsPerHour": 10,
+    "maxHaircutBps": 1000,
+    "minPoolLiquidityUsd": 1000,
+    "minMultiplierBps": 100,
+    "maxMultiplierBps": 10000000
+  },
+
+  "risk": {
+    "advanceOpenBps": 6500,
+    "advanceClosedBps": 5000,
+    "liqThresholdOpenBps": 8000,
+    "liqThresholdClosedBps": 8500,
+    "liqBonusBps": 700
+  },
+
+  "negativeControl": {
+    "symbol": "",
+    "divergenceBandBps": 25
+  },
+
+  "assets": [],
+
+  "calendar": {
+    "holidays": [
+      { "day": 20454, "date": "2026-01-01", "name": "New Year's Day" },
+      { "day": 20472, "date": "2026-01-19", "name": "Martin Luther King, Jr. Day" },
+      { "day": 20500, "date": "2026-02-16", "name": "Washington's Birthday" },
+      { "day": 20546, "date": "2026-04-03", "name": "Good Friday" },
+      { "day": 20598, "date": "2026-05-25", "name": "Memorial Day" },
+      { "day": 20623, "date": "2026-06-19", "name": "Juneteenth National Independence Day" },
+      { "day": 20637, "date": "2026-07-03", "name": "Independence Day, observed" },
+      { "day": 20703, "date": "2026-09-07", "name": "Labor Day" },
+      { "day": 20783, "date": "2026-11-26", "name": "Thanksgiving Day" },
+      { "day": 20812, "date": "2026-12-25", "name": "Christmas Day" },
+      { "day": 20819, "date": "2027-01-01", "name": "New Year's Day" },
+      { "day": 20836, "date": "2027-01-18", "name": "Martin Luther King, Jr. Day" },
+      { "day": 20864, "date": "2027-02-15", "name": "Washington's Birthday" },
+      { "day": 20903, "date": "2027-03-26", "name": "Good Friday" },
+      { "day": 20969, "date": "2027-05-31", "name": "Memorial Day" },
+      { "day": 20987, "date": "2027-06-18", "name": "Juneteenth, observed" },
+      { "day": 21004, "date": "2027-07-05", "name": "Independence Day, observed" },
+      { "day": 21067, "date": "2027-09-06", "name": "Labor Day" },
+      { "day": 21147, "date": "2027-11-25", "name": "Thanksgiving Day" },
+      { "day": 21176, "date": "2027-12-24", "name": "Christmas Day, observed" }
+    ]
+  }
+}

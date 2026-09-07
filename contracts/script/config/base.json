@@ -1,0 +1,134 @@
+{
+  "network": "base",
+  "chainId": 8453,
+
+  "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+  "spendPermissionManager": "0xf85210B21cC50302F477BA56686d2019dC9b67Ad",
+  "publicERC6492Validator": "0xcfCE48B757601F3f351CB6f434CB0517aEEE293D",
+
+  "aerodrome": {
+    "slipstreamFactory": "0xf8f2eB4940CFE7d13603DDDD87f123820Fc061Ef",
+    "swapRouter": "0x698cb2b6dd822994581fea6ea4fc755d1363a92f",
+    "tickSpacing": 10
+  },
+
+  "morpho": {
+    "blue": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+    "adaptiveCurveIrm": "0x46415998764C29aB2a25CbeA6254146D50D22687",
+    "lltvBps": 7700
+  },
+
+  "regS": {
+    "eas": "0x4200000000000000000000000000000000000021",
+    "indexer": "0x2c7eE1E5f416dfF40054c27A62f7B357C4E8619C",
+    "verifiedCountrySchema": "0x1801901fabd0e6189356b4fb52bb0ab855276d84f7ec140839fbd1f6801ca065",
+    "verifiedAccountSchema": "0xf8b05c79f090979bf4a80270aba232dff11a10d9ca55c4f88de95317970f0de9"
+  },
+
+  "rateModel": {
+    "baseRateAprBps": 200,
+    "slope1AprBps": 600,
+    "slope2AprBps": 10000,
+    "kinkBps": 8000,
+    "sessionMultiplierBps": [10000, 10000, 10000, 12500, 15000, 16000]
+  },
+
+  "credit": {
+    "maxSlippageBps": 100
+  },
+
+  "oracle": {
+    "twapWindowSeconds": 1800,
+    "stalenessBudgetSeconds": [3600, 21600, 21600, 90000, 273600, 360000],
+    "divergenceBandBps": [500, 500, 500, 200, 250, 300],
+    "baseHaircutBps": 25,
+    "haircutSlopeBpsPerHour": 15,
+    "maxHaircutBps": 500,
+    "minPoolLiquidityUsd": 25000,
+    "minMultiplierBps": 100,
+    "maxMultiplierBps": 10000000
+  },
+
+  "risk": {
+    "advanceOpenBps": 6500,
+    "advanceClosedBps": 5000,
+    "liqThresholdOpenBps": 8000,
+    "liqThresholdClosedBps": 8500,
+    "liqBonusBps": 700
+  },
+
+  "negativeControl": {
+    "symbol": "NVDAc",
+    "divergenceBandBps": 25
+  },
+
+  "assets": [
+    {
+      "symbol": "NVDAc",
+      "token": "0xb20000000000000000000078ee7ce2fE4908108C",
+      "feed": "0x04689a41629776563E6822F76f2e57D148d28513",
+      "pool": "0x853F5f1B92b16714Fe6CDA67CAad0856B83C7ab9",
+      "capWholeTokens": 100
+    },
+    {
+      "symbol": "AAPLc",
+      "token": "0xb200000000000000000000C2e324d24d7eEcd1fb",
+      "feed": "0x787f13dEa48Db0897CbCDD985de77809D837F988",
+      "pool": "0xA3b1E3f9747065e2073722Ff4c9027d3eA4994F0",
+      "capWholeTokens": 100
+    },
+    {
+      "symbol": "METAc",
+      "token": "0xb2000000000000000000008bC8786B856E61707C",
+      "feed": "0x6526aE6797A76123638b863AeE4dD27Ba4E4b27D",
+      "pool": "0xEAF57753BC382E0324a1D43F72E7027705a2273E",
+      "capWholeTokens": 100
+    },
+    {
+      "symbol": "GOOGLc",
+      "token": "0xb2000000000000000000002D0BA3164cc74f58B7",
+      "feed": "0x5bF49E0ffA937CE2FfF033c739aD7C634c4D34F2",
+      "pool": "0xB1987CAD1682841b4b641d50E520777eC5Ab5542",
+      "capWholeTokens": 100
+    },
+    {
+      "symbol": "TSLAc",
+      "token": "0xb2000000000000000000001e800a7f5189430cD0",
+      "feed": "0xFaf869185383a24F8cb00e27BdA6b63B9905DCb4",
+      "pool": "0x469337fDcc5E8f38e2E4B670B04F57865D13a7BB",
+      "capWholeTokens": 100
+    },
+    {
+      "symbol": "AMZNc",
+      "token": "0xb200000000000000000000d9192b6B456483C2E8",
+      "feed": "0x06A8E4b3aBB3B7543d8396FB2B763d22820cB295",
+      "pool": "0xd03Bc8C7F2FAedCe2aac81bF0444AEA08Ea06E9b",
+      "capWholeTokens": 100
+    }
+  ],
+
+  "calendar": {
+    "holidays": [
+      { "day": 20454, "date": "2026-01-01", "name": "New Year's Day" },
+      { "day": 20472, "date": "2026-01-19", "name": "Martin Luther King, Jr. Day" },
+      { "day": 20500, "date": "2026-02-16", "name": "Washington's Birthday" },
+      { "day": 20546, "date": "2026-04-03", "name": "Good Friday" },
+      { "day": 20598, "date": "2026-05-25", "name": "Memorial Day" },
+      { "day": 20623, "date": "2026-06-19", "name": "Juneteenth National Independence Day" },
+      { "day": 20637, "date": "2026-07-03", "name": "Independence Day, observed" },
+      { "day": 20703, "date": "2026-09-07", "name": "Labor Day" },
+      { "day": 20783, "date": "2026-11-26", "name": "Thanksgiving Day" },
+      { "day": 20812, "date": "2026-12-25", "name": "Christmas Day" },
+      { "day": 20819, "date": "2027-01-01", "name": "New Year's Day" },
+      { "day": 20836, "date": "2027-01-18", "name": "Martin Luther King, Jr. Day" },
+      { "day": 20864, "date": "2027-02-15", "name": "Washington's Birthday" },
+      { "day": 20903, "date": "2027-03-26", "name": "Good Friday" },
+      { "day": 20969, "date": "2027-05-31", "name": "Memorial Day" },
+      { "day": 20987, "date": "2027-06-18", "name": "Juneteenth, observed" },
+      { "day": 21004, "date": "2027-07-05", "name": "Independence Day, observed" },
+      { "day": 21067, "date": "2027-09-06", "name": "Labor Day" },
+      { "day": 21147, "date": "2027-11-25", "name": "Thanksgiving Day" },
+      { "day": 21176, "date": "2027-12-24", "name": "Christmas Day, observed" }
+    ]
+  }
+}
