@@ -36,4 +36,8 @@ Thumbs.db
 .idea/
 .vscode/
 
+# local tool caches
+.remember/
+.playwright-mcp/
+
 .vercel
