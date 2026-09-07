@@ -69,23 +69,35 @@ compile at the moment you run it.)
 
 | PoC | File | Status |
 |---|---|---|
-| A-01 nightly cure loop | `audit/poc/GraceLoop.t.sol` | 4/4 pass — **reproduces** |
-| A-02 dust-asset basket veto | `audit/poc/BasketVeto.t.sol` | 4/4 pass — **reproduces** |
+| A-01 nightly cure loop | `audit/poc/GraceLoop.t.sol` | 5/5 pass — **reproduces** |
+| A-02 dust-asset basket veto | `audit/poc/BasketVeto.t.sol` | 5/5 pass — **reproduces** |
 | A-03 corporate-action handling, all three branches | `audit/poc/SplitSweep.t.sol` | 6/6 pass — **reproduces** |
-| A-04/A-05/A-07 + refuted oracle attacks | `audit/poc/OracleBounds.t.sol` | 6/6 pass — **reproduces** |
-| A-06 calendar drift | `audit/poc/CalendarDrift.t.sol` | 3/3 pass — **reproduces** |
+| A-04/A-05/A-07 + refuted oracle attacks | `audit/poc/OracleBounds.t.sol` | 7/7 pass — **reproduces** |
+| A-06 calendar drift | `audit/poc/CalendarDrift.t.sol` | 4/4 pass — **reproduces** |
 | A-17 permanent stale windows | `audit/poc/StaleWindows.t.sol` | 3/3 pass — **reproduces** |
-| A-12/A-13/A-14/A-15 accounting | `audit/poc/Accounting.t.sol` | 9/9 pass — **reproduces** |
+| A-12/A-13/A-14/A-15 accounting | `audit/poc/Accounting.t.sol` | 13/13 pass — **reproduces** |
 | shared harness (real calendar/oracle/engine/vault) | `audit/poc/Harness.sol` | — |
 
-Total: **35/35 PoC tests pass**, and the repo's own suite is untouched and still green.
+Total: **43/43 PoC tests pass**, and the repo's own suite is untouched and still green.
 
-Supporting exploratory work — the exhaustive calendar probe whose output A-06 quotes
-(`audit/scratch/CalendarProbe.t.sol`, 18 assertions over 108k+ timestamps), and the independent
-accounting sweep that first surfaced A-12 to A-15 — lives in `audit/scratch/` and `audit/refute/`.
-Those are working notes, not the deliverable; everything they claim that is cited in this report has
-been independently re-derived in `audit/poc/`. Run them with `FOUNDRY_TEST=audit/scratch` if you want
-them, and note that `CalendarProbe.t.sol::test_02_RevertSweep_2026_to_2100` needs a raised gas limit.
+The refutation suite is published alongside them and runs the same way:
+
+```
+FOUNDRY_TEST=audit/refute forge test
+```
+
+39 tests over three files, the largest of which walks all 672 consecutive 15-minute slots of a full
+week. It was written mid-audit against the contract as it then stood, and has since been re-pointed
+at the shipped one; `audit/refute/RefuteBase.sol` says which three fixes moved under it and what
+that changed. It pins its own risk parameters rather than inheriting the harness's, so retuning a
+deployment parameter cannot silently change what a refutation means.
+
+One piece of exploratory work is **not** published: the exhaustive calendar probe whose output A-06
+quotes (`CalendarProbe.t.sol`, 18 assertions over 108k+ timestamps) and the accounting sweep that
+first surfaced A-12 to A-15 were working notes in `audit/scratch/`, which this repository ignores.
+Everything they found that is cited in this report has been independently re-derived in
+`audit/poc/` — A-06 in `CalendarDrift.t.sol`, A-12 to A-15 in `Accounting.t.sol` — so nothing here
+rests on a file you cannot run. Where a number came only from the probe, the text below says so.
 
 ---
 
@@ -1262,6 +1274,30 @@ can fix it), but the inconsistency is a trap.
 This section is as important as the findings. Each item below is a real attempt, with the reason it
 failed. Several of them are the design working exactly as intended, and they are worth publishing.
 
+**How each one is refuted, before you read the prose.** Not all fifteen have a test, and it would be
+easy to leave that impression. Four have a dedicated PoC, one is the whole of `audit/refute/`, three
+rest on tests that were already in the repo's own suite, and seven are arguments from the code with
+no test of their own — because a refutation of the form "this state is unreachable" has no positive
+thing to assert. This table says which is which so nobody has to take the word "REFUTED" on trust.
+
+| # | attack | how it is refuted |
+|---|---|---|
+| 1 | Inflating `markBorrow` by pumping the pool | **PoC** — `audit/poc/OracleBounds.t.sol::test_R1_PoolManipulationCannotInflateBorrowPower` |
+| 2 | Deflating `markLiquidate` by dumping the pool | **PoC** — `audit/poc/OracleBounds.t.sol::test_R2_PoolManipulationCannotDeflateTheSeizureMark` |
+| 3 | Poisoning a thin pool during a regular session | **PoC** — `audit/poc/OracleBounds.t.sol::test_R3_ThinPoolIsIgnoredWhileTheSessionIsOpen` |
+| 4 | Blocking a seizure with `UNTRUSTED_THIN` | Argued from the code. The claim is that a state does not exist; `liquidate`'s `calendar.isOpen` guard is what makes it not exist. |
+| 5 | Bricking the protocol through the calendar | Argued, plus the 108k-timestamp probe that is not published. The published half is `audit/poc/CalendarDrift.t.sol` (A-06). |
+| 6 | ERC-4626 first-depositor / donation inflation | **Repo test** — `test/AftermarketVault.t.sol::test_firstDepositorInflationAttackFails` |
+| 7 | Donating USDC to move the interest rate | Argued — and the version of it that *is* real is a finding, not a refutation: **A-13**, which has its own PoC. |
+| 8 | Stripping an *underwater* flagged line | Argued from the `setAsset` ordering invariant. The half that is real is **A-15**, with a PoC. |
+| 9 | Self-flagging to lock in a longer grace | Argued from `graceUntil = max(now + 1h, nextOpen + 30m)`. |
+| 10 | Reentrancy through the swap adapter and the 4626 hooks | Argued from the guard list plus a CEI walk of every value-moving path. |
+| 11 | Arbitrary-call / approval-drain surface | Argued from `ISwapAdapter`'s fixed shape. |
+| 12 | Compliance gate trapping a user | **PoC** — `audit/poc/BasketVeto.t.sol::test_03_TheVetoDoesNotTrapTheBorrower` |
+| 13 | `RegSGate` hostile-source escalation | **Repo tests** — the nine `test_Hostile_*` in `test/RegSGate.t.sol` |
+| 14 | Beating the cure loop from inside the trap band | **Suite** — `FOUNDRY_TEST=audit/refute forge test`, 39 passed |
+| 15 | Share-accounting drift in the debt ledger | **Repo invariants** — the four `invariant_*` in `test/AftermarketCredit.t.sol` |
+
 ### 1. Inflating `markBorrow` by pushing the Aerodrome TWAP up — REFUTED
 
 **PoC:** `audit/poc/OracleBounds.t.sol::test_R1_PoolManipulationCannotInflateBorrowPower` — passes.
@@ -1441,10 +1477,19 @@ flags with NO cure window   : 0     <- the refutation criterion
 
 Flag and cure are exact complements. Also refuted: no same-block escape at the closing bell
 (`liquidate` fails `GraceNotExpired` at 15:59:59 and `MarketClosed` at 16:00:00, so ordering is
-irrelevant); no immediate re-flag after a cure; and thin-pool griefing does not close the window
-because the oracle counts POST as session-open. The only thing that *does* work is spending real money
-to hold the pool divergent overnight (see A-01's severity section), which is why the finding is Medium
+irrelevant); no immediate re-flag after a cure; and thin-pool griefing does not close the cure window,
+because inside a regular session a thin pool is treated as uninformative rather than as a price and
+the mark collapses cleanly onto the anchor. The only thing that *does* work is spending real money to
+hold the pool divergent overnight (see A-01's severity section), which is why the finding is Medium
 rather than High rather than why it is invalid.
+
+**Read the numbers above against the pre-fix contract, which is what they were measured on.** The
+sweep counted "curable" as *healthy at the parameters live at that instant*, and at the time that was
+all `cure()` required. A-01's fix added an open-market requirement, so the 412 curable slots — none of
+them REGULAR — are now 412 slots at which the line prices as healthy and `cure()` still reverts
+`MarketClosed`. That is not a weaker result; it is the finding being closed. An in-band line can no
+longer clear its flag by waiting for a closing bell at all, only by repaying principal during a
+regular session, and `audit/refute/Refute1_GraceLoop.t.sol` now asserts exactly that.
 
 ### 15. Share-accounting drift in the debt ledger — REFUTED
 

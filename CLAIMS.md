@@ -127,7 +127,7 @@ Reference blocks for the `--block` reads:
 | 49 | 3 High, 11 Medium, 2 Low, 1 Informational — seventeen findings, all found by us before deployment. | `REPRODUCIBLE` | [`contracts/audit/AUDIT.md`](contracts/audit/AUDIT.md), findings table |
 | 50 | Fifteen are fixed in code, one is mitigated with the residual written down, two behaviours are accepted by design and documented in the contracts. | `REPRODUCIBLE` | The `Status:` line under each finding; the Remediation section. A-09 moved from accepted to fixed on 2026-09-07 and its original status line is preserved above the new one rather than rewritten. |
 | 51 | Every finding rated Medium or above has a runnable Foundry PoC driving the real contracts. | `REPRODUCIBLE` | `FOUNDRY_TEST=audit/poc forge test` → 43 passed |
-| 52 | Fifteen attacks were tried and did not work, each with its own passing refutation test. | `REPRODUCIBLE` | "Attacks I tried that did NOT work", 15 numbered items |
+| 52 | Fifteen attacks were tried and did not work. Four are refuted by a dedicated PoC, one by the whole `audit/refute/` suite, three by tests that were already in the repo's own suite, and seven are arguments from the code with no test of their own. | `REPRODUCIBLE` | "Attacks I tried that did NOT work" — the table at the head of that section names the test for each of the fifteen, or says there is none. `FOUNDRY_TEST=audit/refute forge test` → 39 passed, 0 failed |
 | 53 | A second adversarial pass over the fixes found six further problems (all fixed) and recorded two residuals. | `REPRODUCIBLE` | "A second pass over the fixes themselves" |
 | 54 | Some worked examples in the audit quote parameters that changed before deploy. | `REPRODUCIBLE` | e.g. the audit's "100 bps + 10 bps/h capped 1000" vs the deployed 25 + 15 capped 500. [MOCKS, project-level caveats](MOCKS.md) |
 | 55 | This is a third-party audit, or equivalent to one. | **`NOT-CLAIMED`** | It is a self-audit. It is adversarial, it is evidenced, and it is not independent. |
@@ -219,3 +219,8 @@ Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be mis
     pool and the clock. Pin a block.
 14. **A passing test suite is not an absence of bugs**, and 32 eval scenarios are not proof of keeper
     coverage.
+15. **No attribution claim.** `NEXT_PUBLIC_BUILDER_CODE` is unset, so every transaction this app has
+    ever sent went out without an ERC-8021 suffix. The encoder, the wagmi wiring and the env plumbing
+    are shipped and correct; the value is empty because a Builder Code is claimed in Base's registry
+    through a base.dev account rather than derived, and we would rather ship an empty field than a
+    string that encodes cleanly and resolves to nobody.
