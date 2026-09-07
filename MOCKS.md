@@ -7,7 +7,7 @@ underneath it, and how you can check the real part yourself.
 **Summary:** the ten protocol contracts, the six oracles, the negative control, the Chainlink feeds,
 the Aerodrome pools, the B20 tokens, the EAS attestation reads, the calendar, the demo transactions
 and every number in [PROOF.md](PROOF.md) are real. Four things are simulated, all of them inside
-tests, all of them labelled `SIMULATED INPUT` in the source. Three project-level caveats sit at the
+tests, all of them labelled `SIMULATED INPUT` in the source. Four project-level caveats sit at the
 bottom.
 
 ---
@@ -192,17 +192,30 @@ Steps 3 and 4 of the demo (`0xcbe1f83c…` and `0x608c9266…`) call the Aerodro
 acquired collateral — a user action, not a protocol code path.
 
 `AerodromeSwapAdapter` (`0xfF81282c…cd68fF`) is the protocol's own venue, used by
-`AftermarketCredit.sweepYield`. It is deployed, verified and covered by the unit and fork suites; it
-has not been exercised by a mainnet transaction, because `sweepYield` needs a multiplier increase that
-has never happened (see §2).
+`AftermarketCredit.sweepYield`. It is deployed, verified, covered by the unit and fork suites, and — as
+of tx [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37),
+block 50,998,717 — exercised directly on mainnet: `swapExactIn` moved 0.400000 USDC into 0.00172031
+NVDAc through the same Slipstream router, called straight by the deployer rather than through
+`sweepYield`. What still has not happened is `sweepYield` itself, because it needs a multiplier
+increase that has never occurred on any listed asset (see §2 above) — the adapter is exercised, the
+corporate-action trigger that would route through it automatically is not.
 
-### The Morpho Blue market is created and empty
+### The Morpho Blue market is funded, but not with any volume
 
 `0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479` exists with the right loan token,
-collateral token, oracle, IRM and LLTV — `market(id)` returns zero supply and zero borrow. It proves
-the `IOracle` integration is wired correctly against code we did not write. It is not a funded market,
-and the "Morpho reads `price()` in exactly three places" claim is verified from Morpho's source
-(`lib/morpho-blue/src/Morpho.sol:258`, `:337`, `:361`), not from live borrow activity on that market.
+collateral token, oracle, IRM and LLTV, and now carries a real supply, a real collateral deposit and a
+real borrow — `market(id)` returns totalSupplyAssets 500000, totalBorrowAssets 150000; `position(id,
+deployer)` returns collateral 172031. Four direct Morpho Blue transactions did this, all from the
+deployer, none through `AftermarketCredit`: see [PROOF §11](PROOF.md) for the hashes, including one
+borrow attempt that reverted (an out-of-gas revert racing the collateral deposit, not an unhealthy
+position) before the identical call succeeded two minutes later.
+
+**What this proves and does not prove.** It proves the `IOracle` integration is wired correctly against
+code we did not write, and that Morpho Blue's own `_isHealthy` — not ours — called our `price()` to
+authorise a real borrow. It does not prove liquidity or adoption: one supplier, one borrower, both the
+deployer, fifty cents total. The "Morpho reads `price()` in exactly three places" claim is still
+verified independently from Morpho's source (`lib/morpho-blue/src/Morpho.sol:258`, `:337`, `:361`); the
+borrow above is now a second, live confirmation of the same fact via the `borrow` call site.
 
 ### The audit text quotes an earlier configuration in places
 
