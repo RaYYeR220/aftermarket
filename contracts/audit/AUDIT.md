@@ -1166,7 +1166,15 @@ is present.
 
 ## A-09 — Medium — Liquidators receive Reg-S securities with no eligibility check
 
-**Status: accepted by design, documented.** Gating liquidators would shrink the liquidator set and risk unliquidatable positions. The decision, and the fact that the Reg-S property covers origination rather than secondary distribution, is now stated in `liquidate`'s NatSpec.
+**Status: originally accepted by design; now FIXED.**
+
+*Original status, kept for the record:* accepted by design, documented. Gating liquidators would shrink the liquidator set and risk unliquidatable positions. The decision, and the fact that the Reg-S property covers origination rather than secondary distribution, was stated in `liquidate`'s NatSpec.
+
+*Superseded on 2026-09-07, and the finding is now fixed in code.* Accepting it was the wrong call. This protocol exists to keep a Regulation-S offering inside its own terms, and "the Reg-S property covers origination only" is a sentence that describes a live, reachable path by which the protocol itself hands a US person a tokenized US equity at an 8% discount. No amount of documenting that makes it not a distribution channel.
+
+The fix separates the two legs of a seizure, because only one of them carries the obligation. USDC comes in from `msg.sender`; the security goes out to a `receiver`. `liquidate` now checks `receiver` against `eligibility` and deliberately does not check `msg.sender`, so the liquidator set is bounded by who may HOLD the security rather than by who may send a transaction - a searcher's bot, a flash-loan router or a relayer can still fund a liquidation with no attestation of its own, provided the collateral lands with an attested non-US person. That answers the original objection (a liquidator set too small to clear a position is a solvency risk) without leaving the channel open. There is no way around it by naming a third party: the address checked is the address the tokens are transferred to. A four-argument `liquidate(user, asset, repayAssets, receiver)` names the receiver; the three-argument form is the same call with `receiver = msg.sender`.
+
+`withdrawCollateral(asset, amount, to)` stays ungated, for the reason the original finding gives: it is an exit on collateral the borrower already holds, and a compliance rule that can trap somebody's assets is a bug. Covered by `test_eligibility_liquidationRefusesAnIneligibleCaller`, `..._RefusesAnIneligibleReceiver`, `..._AllowsAnIneligiblePayerForAnEligibleReceiver` and, against the live gate on real mainnet state, `test/fork/LiveB20.t.sol`.
 
 **File:** `src/AftermarketCredit.sol:538-566` (`liquidate`), `:565`
 `IERC20(collateralAsset).safeTransfer(msg.sender, seized);`.
@@ -1598,10 +1606,15 @@ external events — a corporate action, a date — whose probability is entirely
 
 # Remediation
 
-Every finding above has been worked through. Fourteen are fixed in code, one is mitigated with the
-residual risk written down, and three behaviours are accepted by design and documented in the
+Every finding above has been worked through. Fifteen are fixed in code, one is mitigated with the
+residual risk written down, and two behaviours are accepted by design and documented in the
 contracts themselves rather than coded around. Nothing in the findings text above was changed; the
 `Status:` line under each heading is the only addition.
+
+A-09 moved from the accepted column to the fixed column on 2026-09-07, after the contest's
+eligibility rule made "the Reg-S property covers origination only" indefensible for a path the
+protocol itself operates. Its original status line is preserved above the new one rather than
+rewritten.
 
 The audit's own PoCs under `audit/poc/` were rewritten in place. They previously passed by
 *reproducing* each bug; they now pass by *proving it is gone*, against the same real contracts at the
@@ -1612,7 +1625,7 @@ the behaviour and says so in its name and NatSpec.
 
 | Suite | Command | Result |
 |---|---|---|
-| Repository suite | `forge test` | **255 passed, 0 failed, 1 skipped** (was 240/0/1) |
+| Repository suite | `forge test` | **273 passed, 0 failed, 1 skipped** (was 240/0/1) |
 | PoCs | `FOUNDRY_TEST=audit/poc forge test` | **43 passed, 0 failed** (was 35, all reproducing) |
 | Mainnet fork | `BASE_RPC_URL=... base-forge test --match-path 'test/fork/*'` | **8 passed, 0 failed** |
 
@@ -2033,14 +2046,17 @@ None were weakened. Each of these encoded behaviour a fix deliberately changed:
 - **A-14 (b).** A distribution declared after a reverse split cannot be swept. Fixing it requires the
   contract to distinguish a reverse split from a fall in the multiplier, which the multiplier alone
   cannot express.
-- **A-09 and A-17.** Both accepted by design, with the reasoning in the contracts.
+- **A-17.** Accepted by design, with the reasoning in the contracts. (A-09 was in this list until
+  2026-09-07 and is now fixed; see its status line.)
 - **A-12's write-off can still be delayed by an unpriceable leg**, and `_realizeBadDebt`'s rounding
   direction is now pinned by an invariant rather than proved impossible. Both are written up under
   "A second pass over the fixes themselves".
 - **The un-timelocked owner key**, which the threat model already names. `setAsset` now validates the
   oracle it installs, which removes the accidental version of the worst case, but a malicious owner
-  can still repoint any oracle, rate model, compliance gate or swap venue. That should be a timelocked
-  multisig on day one, and the docs should say so.
+  can still repoint any oracle, rate model or swap venue. The compliance gate is no longer on that
+  list: `AftermarketCredit.eligibility` is immutable as of 2026-09-07 and `setEligibility` is gone,
+  because a jurisdiction rule an owner key can lift in one transaction is not a rule. The rest should
+  be a timelocked multisig on day one, and the docs should say so.
 - **The calendar still cannot be extended in place.** The horizon is explicit and safe; reaching it
   still means a redeployment of the calendar, every oracle and the engine. If in-place extension
   matters more than immutability, the constructor should take the seed table as a parameter.
