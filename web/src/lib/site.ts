@@ -15,7 +15,7 @@ export const SITE = {
    * this constant is the canonical record of where the deployment lives.
    */
   url: "https://aftermarket-fawn.vercel.app",
-  repository: "https://github.com/aftermarket-credit/aftermarket",
+  repository: "https://github.com/RaYYeR220/aftermarket",
   explorer: "https://basescan.org",
 } as const;
 
