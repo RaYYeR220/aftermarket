@@ -9,6 +9,8 @@ Base mainnet · chainId 8453 · every contract source-verified · MIT
 **Live demo: <https://aftermarket-fawn.vercel.app>** — the landing page and all seven app screens,
 reading Base mainnet live.
 
+**Demo video (2:56): <https://youtu.be/ix3a1fEQlV8>** — the measurement, the refusal, and the two calls that reproduce it.
+
 ---
 
 ## The measurement this was built around

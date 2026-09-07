@@ -10,6 +10,13 @@ export RPC=https://mainnet.base.org
 
 ---
 
+## The video — 3 minutes, if you would rather watch than type
+
+**<https://youtu.be/ix3a1fEQlV8>** — 2:56. It walks the measurement, the refusal, the negative control side by side,
+and the two `cast` calls in step 2 being run against mainnet. Everything it shows is reproducible below.
+
+---
+
 ## 0 · The app — 20 seconds
 
 **Live demo: <https://aftermarket-fawn.vercel.app>** — nothing to install, no wallet needed to read
