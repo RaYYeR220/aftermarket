@@ -1,0 +1,33 @@
+{
+  "name": "@aftermarket/observer",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Live Base mainnet evidence tool: compares Coinbase tokenized stock (B20) state against Chainlink feeds and Aerodrome Slipstream TWAPs.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "observer": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "viem": "2.56.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.2"
+  },
+  "engines": {
+    "node": ">=18.11"
+  }
+}
