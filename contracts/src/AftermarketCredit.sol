@@ -1125,10 +1125,13 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
     }
 
     /// @notice USDC owed by `user`, projected to `block.timestamp`.
+    /// @dev Capped at the market total for the reason given on `_capToMarket`, so that the number a
+    ///      borrower is quoted is always a number they can actually pay.
     function debtOf(address user) public view returns (uint256) {
         uint128 shares = lines[user].debtShares;
         if (shares == 0) return 0;
-        return _toAssetsUp(shares, totalDebtAssets(), totalDebtSharesStored);
+        uint256 total = totalDebtAssets();
+        return _capToMarket(_toAssetsUp(shares, total, totalDebtSharesStored), total);
     }
 
     /// @notice Debt shares held by `user`.
@@ -1336,7 +1339,21 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
     function _debtStored(address user) internal view returns (uint256) {
         uint128 shares = lines[user].debtShares;
         if (shares == 0) return 0;
-        return _toAssetsUp(shares, totalDebtAssetsStored, totalDebtSharesStored);
+        return _capToMarket(_toAssetsUp(shares, totalDebtAssetsStored, totalDebtSharesStored), totalDebtAssetsStored);
+    }
+
+    /// @dev A line can never owe more than the whole market does.
+    ///
+    ///      `_toAssetsUp` rounds against the borrower, which is right on every ordinary repayment
+    ///      and wrong on the last one: when a market has several lines and its asset total has been
+    ///      ground down to a few units, the ceiling can put one line's debt a single unit above
+    ///      `totalDebtAssetsStored`. Left alone that unit is subtracted from a total that does not
+    ///      contain it, and the subtraction reverts - permanently, on the one function this design
+    ///      promises can never be closed to a borrower. Capping is exact rather than approximate:
+    ///      the market's own total is the true upper bound on any share of it, so the cap can only
+    ///      ever discard rounding dust that nobody is owed.
+    function _capToMarket(uint256 assets, uint256 marketAssets) internal pure returns (uint256) {
+        return assets > marketAssets ? marketAssets : assets;
     }
 
     /// @dev Reduces `user`'s debt by at most `assets`, without moving any tokens.
@@ -1346,7 +1363,7 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
         uint256 td = totalDebtAssetsStored;
         uint256 ts = totalDebtSharesStored;
 
-        uint256 maxAssets = _toAssetsUp(userShares, td, ts);
+        uint256 maxAssets = _capToMarket(_toAssetsUp(userShares, td, ts), td);
         if (assets >= maxAssets) {
             repaidAssets = maxAssets;
             shares = userShares;
@@ -1376,7 +1393,11 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
         if (lines[user].debtShares == 0) revert NoDebt(user);
 
         (repaidAssets, repaidShares) = _burnDebt(user, assets);
-        if (repaidAssets == 0) revert ZeroAmount();
+        // A repayment that moves neither assets nor shares is a no-op and is refused. A repayment
+        // that moves shares but no assets is not: it is the last line closing itself out against a
+        // market whose asset total has already been rounded away, and refusing it would be exactly
+        // the trap `_capToMarket` exists to prevent.
+        if (repaidAssets == 0 && repaidShares == 0) revert ZeroAmount();
 
         // A line with nothing left to owe has nothing left to seize, so the flag goes with it.
         Line storage l = lines[user];

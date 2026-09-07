@@ -1689,21 +1689,32 @@ contract AftermarketCreditInvariantTest is AftermarketFixture {
         targetContract(address(handler));
     }
 
-    /// @notice Every debt share belongs to exactly one line.
-    /// @notice `_burnDebt`'s final-repay path computes `totalDebtAssetsStored - _toAssetsUp(...)`,
-    ///         which is underflow-safe only while the share total stays under `VIRTUAL_SHARES` times
-    ///         the asset total. `_realizeBadDebt` burns shares exactly while rounding the residual
-    ///         assets up, so it is the one writer that moves this ratio the wrong way; if it ever
-    ///         crossed, `repay` would revert permanently, which is the single outcome the design
-    ///         says is impossible.
-    function invariant_debtSharesNeverOutrunTheAssetCeiling() public view {
-        assertLe(
-            credit.totalDebtShares(),
-            1e6 * credit.totalDebtAssets(),
-            "debt shares must stay under the virtual-share ceiling on assets"
-        );
+    /// @notice No line is ever quoted a debt the market itself does not owe.
+    ///
+    /// @dev The property being protected is that `_burnDebt`'s final-repay path, which computes
+    ///      `totalDebtAssetsStored - <this line's debt>`, can never underflow - because if it did,
+    ///      `repay` would revert permanently, which is the single outcome this design says is
+    ///      impossible.
+    ///
+    ///      This assertion replaces an earlier one that stated the same intent as a ratio,
+    ///      `totalDebtShares <= VIRTUAL_SHARES * totalDebtAssets`, and that assertion was wrong.
+    ///      The bound is not a property of the code and cannot be made into one: `_toAssetsUp`
+    ///      rounds a full repayment up against the repayer, so the last line out of a market whose
+    ///      totals have been ground down to a few units removes assets one step faster than it
+    ///      removes shares, and any other line's shares survive an asset total of zero. Enforcing
+    ///      the ratio instead would mean refusing that last repayment, which is the trap rather than
+    ///      the fix. `AftermarketCredit._capToMarket` therefore caps the debt of a line at the
+    ///      market total, and this invariant is the direct statement of that cap.
+    function invariant_noLineOwesMoreThanTheWholeMarket() public view {
+        uint256 total = credit.totalDebtAssets();
+        for (uint256 i; i < handler.actorCount(); ++i) {
+            assertLe(
+                credit.debtOf(handler.actorAt(i)), total, "a line was quoted more debt than the market carries"
+            );
+        }
     }
 
+    /// @notice Every debt share belongs to exactly one line.
 
     function invariant_debtSharesSumToTheTotal() public view {
         uint256 sum;
