@@ -148,6 +148,8 @@ abstract contract ForkBase is Test {
     address internal borrower = makeAddr("aftermarket.borrower");
     address internal borrowerTwo = makeAddr("aftermarket.borrowerTwo");
     address internal liquidator = makeAddr("aftermarket.liquidator");
+    /// @notice An account with no jurisdiction proven anywhere, deliberately never attested.
+    address internal unattested = makeAddr("aftermarket.unattested");
 
     /*//////////////////////////////////////////////////////////////
                             DEPLOYED SYSTEM
@@ -246,9 +248,15 @@ abstract contract ForkBase is Test {
             ITradingCalendar(address(calendar)), 634_195_839, 1_902_587_519, 31_709_791_983, 0.8e18, sessionMultipliers
         );
 
-        adapter = new AerodromeSwapAdapter(ISlipstreamSwapRouter(SWAP_ROUTER), TICK_SPACING, address(this));
+        // Same three-CREATE unit the deploy script uses: the adapter only answers the engine, the
+        // engine only settles into the vault, and both forward references are counterfactual.
+        uint256 nonce = vm.getNonce(address(this));
+        address predictedCredit = vm.computeCreateAddress(address(this), nonce + 1);
+        address predictedVault = vm.computeCreateAddress(address(this), nonce + 2);
 
-        address predictedVault = vm.computeCreateAddress(address(this), vm.getNonce(address(this)) + 1);
+        adapter =
+            new AerodromeSwapAdapter(ISlipstreamSwapRouter(SWAP_ROUTER), TICK_SPACING, address(this), predictedCredit);
+
         credit = new AftermarketCredit(
             IERC20(USDC),
             predictedVault,
@@ -259,8 +267,10 @@ abstract contract ForkBase is Test {
             MAX_SLIPPAGE_BPS,
             owner
         );
+        require(address(credit) == predictedCredit, "credit address prediction");
         vault = new AftermarketVault(IERC20(USDC), address(credit), "Aftermarket USDC", "amUSDC");
         require(address(vault) == predictedVault, "vault address prediction");
+        require(adapter.credit() == address(credit), "adapter bound to the wrong engine");
     }
 
     /// @notice Deploys an oracle for `token` against its real feed and its real pool, then lists it.

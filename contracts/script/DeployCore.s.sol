@@ -53,11 +53,13 @@ import {AftermarketConfig} from "./AftermarketConfig.sol";
 ///      reverts for as long as it takes the second transaction to land, which is not a state worth
 ///      creating to preserve a listing order.
 ///
-///      `AftermarketCredit` and `AftermarketVault` reference each other immutably, so the vault
-///      address is predicted before the engine is deployed and the vault's own constructor checks
-///      the reverse link. A wrong prediction can therefore only produce a failed deployment, never
-///      a live mis-wired protocol. Because that pairing is atomic, the reuse logic treats the two as
-///      one unit: if either is missing from the record, both are deployed again.
+///      Adapter, engine and vault are mutually immutable and are therefore deployed as one atomic
+///      unit of three consecutive `CREATE`s. The adapter takes the engine's counterfactual address
+///      (it will only accept calls from that address), the engine takes the vault's, and the vault's
+///      own constructor checks the reverse link back to the engine. All three predictions are
+///      asserted immediately afterwards, so a wrong one produces a failed deployment rather than a
+///      live mis-wired protocol - and the reuse logic treats the three as a single unit: if any one
+///      of them is missing from the record, all three are deployed again.
 ///
 ///      ## Idempotence
 ///
@@ -80,6 +82,10 @@ contract DeployCore is AftermarketConfig {
     error CalendarSeedMismatch(uint32 day, Session session);
     /// @notice The predicted vault address did not match the deployed one.
     error VaultPredictionFailed(address predicted, address actual);
+    /// @notice The predicted credit address did not match the deployed one.
+    error CreditPredictionFailed(address predicted, address actual);
+    /// @notice The adapter was built against a different credit engine than the one deployed.
+    error SwapAdapterMisbound(address expected, address actual);
     /// @notice The factory produced an oracle somewhere other than its counterfactual address.
     error OracleAddressMismatch(address predicted, address actual);
 
@@ -197,20 +203,24 @@ contract DeployCore is AftermarketConfig {
 
     function _deployEngine(string memory existing) private {
         d.swapAdapter = _recorded(existing, "swapAdapter");
-        if (d.swapAdapter == address(0)) {
-            d.swapAdapter = address(
-                new AerodromeSwapAdapter(ISlipstreamSwapRouter(slipstreamRouter), slipstreamTickSpacing, protocolOwner)
-            );
-        }
-
         d.credit = _recorded(existing, "credit");
         d.vault = _recorded(existing, "vault");
-        if (d.credit != address(0) && d.vault != address(0)) return;
+        if (d.swapAdapter != address(0) && d.credit != address(0) && d.vault != address(0)) return;
 
-        // The engine is deployed first and the vault immediately after, from the same account, so
-        // the vault lands at the next CREATE address. The vault's constructor verifies the reverse
-        // link, turning any mistake here into a failed deployment rather than a broken protocol.
-        address predictedVault = vm.computeCreateAddress(deployer, vm.getNonce(deployer) + 1);
+        // Three consecutive CREATEs from one account, so all three addresses are known before the
+        // first of them exists. The adapter will only accept calls from the engine and the engine
+        // will only settle into the vault, so both forward references are counterfactual and both
+        // are asserted below; the vault additionally checks the reverse link in its own constructor.
+        // Any mistake here is therefore a failed deployment rather than a broken protocol.
+        uint256 nonce = vm.getNonce(deployer);
+        address predictedCredit = vm.computeCreateAddress(deployer, nonce + 1);
+        address predictedVault = vm.computeCreateAddress(deployer, nonce + 2);
+
+        d.swapAdapter = address(
+            new AerodromeSwapAdapter(
+                ISlipstreamSwapRouter(slipstreamRouter), slipstreamTickSpacing, protocolOwner, predictedCredit
+            )
+        );
 
         d.credit = address(
             new AftermarketCredit(
@@ -224,8 +234,13 @@ contract DeployCore is AftermarketConfig {
                 protocolOwner
             )
         );
+        if (d.credit != predictedCredit) revert CreditPredictionFailed(predictedCredit, d.credit);
+
         d.vault = address(new AftermarketVault(IERC20(usdc), d.credit, VAULT_NAME, VAULT_SYMBOL));
         if (d.vault != predictedVault) revert VaultPredictionFailed(predictedVault, d.vault);
+
+        address boundCredit = AerodromeSwapAdapter(d.swapAdapter).credit();
+        if (boundCredit != d.credit) revert SwapAdapterMisbound(d.credit, boundCredit);
     }
 
     function _deployPeriphery(string memory existing) private {
@@ -373,7 +388,9 @@ contract DeployCore is AftermarketConfig {
             "sessionRateModel",
             abi.encode(d.calendar, baseRatePerSecond, slope1PerSecond, slope2PerSecond, kink, sessionMultipliers)
         );
-        vm.serializeBytes(key, "swapAdapter", abi.encode(slipstreamRouter, slipstreamTickSpacing, protocolOwner));
+        vm.serializeBytes(
+            key, "swapAdapter", abi.encode(slipstreamRouter, slipstreamTickSpacing, protocolOwner, d.credit)
+        );
         vm.serializeBytes(
             key,
             "credit",
