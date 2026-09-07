@@ -108,22 +108,22 @@ fault that is not there, so this one is pinned. Every other test in the file run
 
 ### The AMZNc case
 
-At block 50,997,343, straight off mainnet with no construction whatsoever (the figures below were
-taken during the weekend before, at a comparable point in the same close):
+At block 50,997,343, straight off mainnet with no construction whatsoever — this is the test's own
+`console2` output, reproducible with `-vv`:
 
 ```
+pinned block           50997343
 AMZNc verdict          UNTRUSTED_DIVERGENT
-AMZNc session          CLOSED_WEEKEND
-AMZN feed age (s)      196202          (54h 30m, frozen at Friday's close)
-AMZN staleness budget  273600          (76h - staleness is not what condemns it)
+AMZNc session          CLOSED_HOLIDAY
+AMZN feed age (s)      231558          (64h 20m, frozen at Friday's close)
+AMZN staleness budget  388800          (108h - staleness is not what condemns it)
 AMZN anchor            257.69 USD      (Chainlink)
-AMZNc pool TWAP        281.13 USD      (Aerodrome Slipstream, 30 minutes)
-divergence             909 bps
-divergence band        250 bps
-pool USDC depth        57,395 USD      (deep enough to corroborate, so not "thin" either)
+AMZNc pool TWAP        280.82 USD      (Aerodrome Slipstream, 30 minutes)
+divergence             897 bps
+divergence band        300 bps
 ```
 
-The two sources disagree by 909 basis points against a 250 basis point weekend band. The oracle
+The two sources disagree by 897 basis points against a 300 basis point holiday band. The oracle
 declines to pick a winner and refuses to quote. The test then asserts each consequence individually:
 
 - `price()`, `markBorrow()` and `markLiquidate()` all revert `SourcesDiverged`
