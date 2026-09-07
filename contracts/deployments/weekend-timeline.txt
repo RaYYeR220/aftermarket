@@ -1,0 +1,29 @@
+Aftermarket - Labor Day weekend replay, Base mainnet
+US market closed Fri 2026-09-04 16:00 ET, reopened Tue 2026-09-08 09:30 ET.
+Monday 2026-09-07 is Labor Day, so the gap between two real prints is 89h 30m.
+Collateral basket held fixed at 100 NVDAc. Power is USDC drawable against it.
+Rows marked 'pin <n>' are real Base blocks; rows marked 'warp' advance the clock
+on top of block 50,974,927 without changing any chain state.
+
+when                      source                 unix  session           NVDAc verdict            feed age   div  band  hcut   mark USD   power USDC
+----------------------------------------------------------------------------------------------------------------------------------------------------
+Fri 13:00 ET  mid-session pin 50875927     1788541201  REGULAR           TRUSTED                     1h 8m    17   150     0     231.14     11557.08
+Fri 16:05 ET  bell + 5m   pin 50881477     1788552301  POST              TRUSTED                     2h 0m    15   200   100     227.65      7968.02
+Fri 20:05 ET  post over   pin 50888677     1788566701  CLOSED_OVERNIGHT  TRUSTED_CLOSED              6h 0m     7   250   200     225.35      7887.53
+Sat 08:00 ET              pin 50910127     1788609601  CLOSED_WEEKEND    TRUSTED_CLOSED            17h 55m    24   250   500     218.45      7646.08
+Sun 08:00 ET              pin 50953327     1788696001  CLOSED_WEEKEND    TRUSTED_CLOSED            41h 55m    75   250  1100     204.66      7163.16
+Sun 20:00 ET  last block  pin 50974927     1788739201  CLOSED_WEEKEND    TRUSTED_CLOSED            53h 55m    61   250  1400     197.76      6921.71
+Mon 12:00 ET  Labor Day   warp             1788796800  CLOSED_HOLIDAY    TRUSTED_CLOSED            69h 55m    60   300  1500     195.46      6841.22
+Tue 09:30 ET  next bell   warp             1788874200  REGULAR           UNTRUSTED_STALE           91h 25m    60   150     0     229.95      blocked
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+AMZNc, same instants - the market that actually broke:
+when                      AMZNc verdict          div bps
+Fri 13:00 ET  mid-session TRUSTED                      0
+Fri 16:05 ET  bell + 5m   TRUSTED                      0
+Fri 20:05 ET  post over   TRUSTED_CLOSED              33
+Sat 08:00 ET              TRUSTED_CLOSED              67
+Sun 08:00 ET              UNTRUSTED_DIVERGENT        960
+Sun 20:00 ET  last block  UNTRUSTED_DIVERGENT        930
+Mon 12:00 ET  Labor Day   UNTRUSTED_DIVERGENT        930
+Tue 09:30 ET  next bell   UNTRUSTED_STALE            930
