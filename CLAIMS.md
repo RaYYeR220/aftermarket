@@ -59,7 +59,7 @@ Reference block for the `--block` reads: **50,997,343** (2026-09-07 12:27:13 UTC
 | 21 | Morpho Blue reads `IOracle.price()` in exactly three functions — `borrow`, `withdrawCollateral`, `liquidate` — and in none of `supply`, `withdraw`, `repay`, `supplyCollateral`. | `REPRODUCIBLE` | `lib/morpho-blue/src/Morpho.sol:258`, `:337`, `:361`, `:518`; `grep -n "price()" contracts/lib/morpho-blue/src/Morpho.sol` |
 | 22 | A reverting oracle therefore freezes new borrowing and seizure while leaving repayment and collateral supply open. | `REPRODUCIBLE` | Follows from 21, in Morpho's audited code, not ours |
 | 23 | A Morpho Blue market exists with USDC loan, NVDAc collateral, our oracle, AdaptiveCurveIRM and 77% LLTV. | `REPRODUCIBLE` | `idToMarketParams(0xfef5641f…)` — [PROOF §11](PROOF.md) |
-| 24 | That market has liquidity, users, or borrow activity. | **`NOT-CLAIMED`** | `market(id)` returns zero supply and zero borrow. It is created and empty. |
+| 24 | That market has liquidity, users, or borrow activity in any volume sense. | **`NOT-CLAIMED`** | It has taken exactly one supply and one borrow, both from the deployer, totaling $0.50 — see claims 63–66 below. |
 
 ## Compliance
 
@@ -134,6 +134,22 @@ Stated as claims because they are, and because a reviewer should be able to chec
 | 59 | The owner is a single un-timelocked EOA that can repoint any oracle, rate model, compliance gate or swap venue. | `REPRODUCIBLE` | `cast call <credit> "owner()(address)"` → `0x0AF7aFC7…C5c8f`; audit, "What was not fixed" |
 | 60 | Two of the six listed Aerodrome pools held under $70k of USDC in the Sunday snapshot (AMZNc ~$55k, TSLAc ~$67k). | `REPRODUCIBLE` | [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json) |
 
+## New evidence, since the rest of this document was written
+
+Both previously-inert integrations fired on mainnet on 2026-09-07, after the deploy and the demo
+transactions above. Added here rather than folded quietly into the sections above, so the update is
+itself visible.
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 61 | `AerodromeSwapAdapter.swapExactIn` has been called directly on mainnet: 0.400000 USDC → 0.00172031 NVDAc. | `REPRODUCIBLE` | tx [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37), block 50,998,717 — [PROOF §4](PROOF.md) |
+| 62 | `sweepYield` itself — the corporate-action path through that adapter — has still never fired. | **`NOT-CLAIMED`** | No B20 has had a corporate action; `multiplier()` is still exactly `1e18` on every listed asset. [MOCKS §2](MOCKS.md) |
+| 63 | The Morpho Blue NVDAc market has taken a real supply, a real collateral deposit and a real borrow. | `REPRODUCIBLE` | `market(id)`: totalSupplyAssets 500000, totalBorrowAssets 150000; `position(id, deployer)`: collateral 172031 — [PROOF §11](PROOF.md) |
+| 64 | That borrow was authorised by Morpho Blue's own `_isHealthy` calling our oracle's `price()` — not by our code asserting it was fine. | `REPRODUCIBLE` | Follows from claim 21 (`Morpho.sol:258` calls `price()` inside `borrow`) plus the successful call itself — [PROOF §11](PROOF.md) |
+| 65 | An earlier borrow attempt at the same market, with byte-identical calldata, reverted. | `REPRODUCIBLE` | tx [`0xe879cd3e…7a0bd2`](https://base.blockscout.com/tx/0xe879cd3ea9d7f1f557d07c54822a52b37ab7e92cbf62846fedd83bd15c7a0bd2), status 0, block 50,998,742, one block after the collateral deposit — `gasUsed == gasLimit` (229,436), an out-of-gas revert from a gas estimate that raced the collateral deposit, not an unhealthy position. [PROOF §11](PROOF.md) |
+| 66 | This is a funded, adopted market. | **`NOT-CLAIMED`** | One supplier, one borrower, both the deployer, $0.50 total. It is no longer empty; it is not liquidity. |
+| 67 | The repository is public and the app is hosted. | `REPRODUCIBLE` | <https://github.com/RaYYeR220/aftermarket>; <https://aftermarket-fawn.vercel.app> |
+
 ---
 
 ## The explicit NOT-CLAIMED list
@@ -145,7 +161,9 @@ Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be mis
 2. **The seven oracles are not verified on Blockscout.** Its verifier needs creation bytecode, which it
    never indexed for a `CREATE2` deploy from inside the factory. Sourcify's runtime `exact_match`
    covers all seven.
-3. **The Morpho Blue market has no liquidity.** Created and empty.
+3. **The Morpho Blue market has no liquidity in any volume sense.** It has taken exactly one supply and
+   one borrow, both the deployer's own, totaling $0.50. It is no longer empty (claim 63), but it is not
+   liquidity.
 4. **The demo account is not Coinbase-verified.** Our own registry attested it, and the chain says so.
 5. **This is not legal Reg-S compliance**, not legal advice, and not a licence to distribute
    securities. Liquidators are deliberately ungated.
@@ -156,14 +174,14 @@ Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be mis
 9. **We have never seen a real B20 corporate action.** `sweepYield` has never fired on mainnet, the
    feed's post-split unit convention is unknown (audit A-03 branch B), and the multiplier is still
    exactly `1e18` on every listed asset.
-10. **`AerodromeSwapAdapter` has not been exercised by a mainnet transaction.** The demo's swaps went
-    through Aerodrome's own router, as user actions.
-11. **No hosted deployment URL.** The app runs from source.
-12. **No claim about the security of Coinbase's B20 tokens, Chainlink's feeds, Aerodrome's pools,
+10. **`sweepYield` — the corporate-action path through `AerodromeSwapAdapter` — has not fired.**
+    `swapExactIn` itself has (claim 61); `sweepYield` needs a multiplier increase that has never
+    happened, for the same reason as item 9.
+11. **No claim about the security of Coinbase's B20 tokens, Chainlink's feeds, Aerodrome's pools,
     Morpho Blue or the EAS predeploy.** We read them; we did not audit them.
-13. **No audience, revenue, TVL, user or partnership claim of any kind.** The only user of this
+12. **No audience, revenue, TVL, user or partnership claim of any kind.** The only user of this
     protocol is the deployer's demo wallet.
-14. **The specific divergence, debt and seizure-threshold figures are not stable.** They move with the
+13. **The specific divergence, debt and seizure-threshold figures are not stable.** They move with the
     pool and the clock. Pin a block.
-15. **A passing test suite is not an absence of bugs**, and 32 eval scenarios are not proof of keeper
+14. **A passing test suite is not an absence of bugs**, and 32 eval scenarios are not proof of keeper
     coverage.
