@@ -4,15 +4,24 @@ Every claim Aftermarket makes, as a link you can click or a command you can past
 a wallet, a key or a deploy.
 
 **Network:** Base mainnet, chainId 8453 · **Deployer/owner:** [`0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f`](https://base.blockscout.com/address/0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f)
-· **Deploy block:** 50,987,282 (2026-09-07 06:51:51 UTC)
+· **Deploy block:** 50,987,282 for the oracles, the calendar, the gate, the registry and the rate
+model; **51,009,779** for the credit engine, vault, auto-repayer, lens and swap adapter, which were
+redeployed the same day for the Reg-S changes described in [CLAIMS.md](CLAIMS.md).
 
-All live reads below are pinned to **block 50,997,343** (2026-09-07 12:27:13 UTC = 08:27 ET, Labor
-Day) so you get exactly the bytes we got. Drop `--block` to read the head; two of the numbers move,
-and we say which.
+Live reads below are pinned to one of two blocks, and each command says which:
+
+- **`$BLOCK` = 50,997,343** (2026-09-07 12:27:13 UTC = 08:27 ET, Labor Day) for §2, the oracles. Those
+  contracts did not change and neither did their addresses, so every oracle read on this page is the
+  same read it always was.
+- **`$CBLOCK` = 51,010,200** (2026-09-07 19:35:47 UTC) for §3, the credit engine, which is at a
+  new address as of 19:26 UTC.
+
+Drop `--block` to read the head; the numbers that move are called out where they appear.
 
 ```bash
 export RPC=https://mainnet.base.org      # any Base RPC; an archive node for the --block reads
-export BLOCK=50997343
+export BLOCK=50997343                    # the oracle reads, §2
+export CBLOCK=51010200                   # the credit engine reads, §3
 ```
 
 ---
@@ -34,11 +43,11 @@ scripts/verify-sources.sh sourcify    # re-submit everything
 | `RegSGate` | `0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C` | [exact match](https://repo.sourcify.dev/8453/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C) | [source](https://base.blockscout.com/address/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C?tab=contract) |
 | `SessionRateModel` | `0x6d5152d81982DEb660736fC514761E18533a2343` | [exact match](https://repo.sourcify.dev/8453/0x6d5152d81982DEb660736fC514761E18533a2343) | [source](https://base.blockscout.com/address/0x6d5152d81982DEb660736fC514761E18533a2343?tab=contract) |
 | `AftermarketOracleFactory` | `0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A` | [exact match](https://repo.sourcify.dev/8453/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A) | [source](https://base.blockscout.com/address/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A?tab=contract) |
-| `AerodromeSwapAdapter` | `0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF` | [exact match](https://repo.sourcify.dev/8453/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF) | [source](https://base.blockscout.com/address/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF?tab=contract) |
-| `AftermarketCredit` | `0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3` | [exact match](https://repo.sourcify.dev/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3) | [source](https://base.blockscout.com/address/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3?tab=contract) |
-| `AftermarketVault` | `0x00751166Ce3fa20a4143a1F0D848978Db73bd53f` | [exact match](https://repo.sourcify.dev/8453/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f) | [source](https://base.blockscout.com/address/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f?tab=contract) |
-| `AutoRepayer` | `0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A` | [exact match](https://repo.sourcify.dev/8453/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A) | [source](https://base.blockscout.com/address/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A?tab=contract) |
-| `AftermarketLens` | `0x5A18BdEB02B30b737a2464E02A2a669BF52bC049` | [exact match](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) | [source](https://base.blockscout.com/address/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049?tab=contract) |
+| `AerodromeSwapAdapter` | `0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E` | [exact match](https://repo.sourcify.dev/8453/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E) | [source](https://base.blockscout.com/address/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E?tab=contract) |
+| `AftermarketCredit` | `0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93` | [exact match](https://repo.sourcify.dev/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93) | [source](https://base.blockscout.com/address/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93?tab=contract) |
+| `AftermarketVault` | `0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697` | [exact match](https://repo.sourcify.dev/8453/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697) | [source](https://base.blockscout.com/address/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697?tab=contract) |
+| `AutoRepayer` | `0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404` | [exact match](https://repo.sourcify.dev/8453/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404) | [source](https://base.blockscout.com/address/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404?tab=contract) |
+| `AftermarketLens` | `0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D` | [exact match](https://repo.sourcify.dev/8453/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D) | [source](https://base.blockscout.com/address/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D?tab=contract) |
 | `AftermarketOracle` NVDAc | `0x1E2b20B4703F97710c2600eA73179c6CD1E00b02` | [exact match](https://repo.sourcify.dev/8453/0x1E2b20B4703F97710c2600eA73179c6CD1E00b02) | see note |
 | `AftermarketOracle` AAPLc | `0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc` | [exact match](https://repo.sourcify.dev/8453/0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc) | see note |
 | `AftermarketOracle` METAc | `0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2` | [exact match](https://repo.sourcify.dev/8453/0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2) | see note |
@@ -175,19 +184,20 @@ done
 ## 3. The credit engine, live
 
 The demo line at `0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f` holds **0.00515351 NVDAc** and
-**0.00356308 AMZNc** against **0.500011 USDC** of debt.
+**0.00356308 AMZNc** against **0.500000 USDC** of debt. Same collateral, same borrower, re-seeded onto
+the redeployed engine on 2026-09-07 at 19:3x UTC — see §4.
 
 ### 3a. It refuses to lend more than the markable collateral supports
 
 ```bash
-cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "draw(uint256,address)" \
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" \
   900000 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f \
-  --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block $BLOCK
+  --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block $CBLOCK
 ```
 
 ```
 execution reverted, data: 0x5033ec12
-  ...155ccb   debtAfter   = 1400011   ($1.400011)
+  ...155cc0   debtAfter   = 1400000   ($1.400000)
   ...0896e4   borrowPower =  562916   ($0.562916)
 ```
 
@@ -196,15 +206,15 @@ execution reverted, data: 0x5033ec12
 ### 3b. It refuses to seize while the market is shut
 
 ```bash
-cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "flag(address)" \
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" \
   0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f \
-  --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block $BLOCK
+  --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block $CBLOCK
 ```
 
 ```
 execution reverted, data: 0x0d007982
-  ...07a12b   debt             =  500011   ($0.500011)
-  ...104f5b   seizureThreshold = 1069403   ($1.069403)
+  ...07a120   debt             =  500000   ($0.500000)
+  ...104918   seizureThreshold = 1067800   ($1.067800)
 ```
 
 `0x0d007982` = `cast sig "LineHealthy(uint256,uint256)"`. The seizure threshold is **2.14× the debt**,
@@ -218,19 +228,19 @@ the line *harder* to take, not easier.
 ### 3c. The headline: an unmarkable asset contributes exactly zero borrowing power
 
 Two archive calls at adjacent blocks, straddling the transaction that deposited **$1.00 of AMZNc** as
-collateral (tx [`0x9b6049f1…37cc76`](https://base.blockscout.com/tx/0x9b6049f1090c30fe665269dc9ea0c7645130d94cb80315b002210766d437cc76), block 50,991,632):
+collateral (tx [`0xcbeeef4f…f29155`](https://base.blockscout.com/tx/0xcbeeef4f98773d8d75818322f7a82cdba489067f77069702e38ddcf765f29155), block 51,009,977):
 
 ```bash
 U=0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f
-for B in 50991631 50991632; do
-  cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "draw(uint256,address)" 900000 $U \
+for B in 51009976 51009977; do
+  cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" 900000 $U \
     --from $U --rpc-url $RPC --block $B
 done
 ```
 
 ```
-block 50991631  (before)  ->  Undercollateralized(900000, 562916)
-block 50991632  (after)   ->  Undercollateralized(900000, 562916)
+block 51009976  (before)  ->  Undercollateralized(900000, 562916)
+block 51009977  (after)   ->  Undercollateralized(900000, 562916)
 ```
 
 **Borrow power before: 562,916. Borrow power after: 562,916.**
@@ -248,10 +258,10 @@ a loss and never a licence.
 You can see the same thing from the lens, which never reverts:
 
 ```bash
-cast call 0x5A18BdEB02B30b737a2464E02A2a669BF52bC049 \
+cast call 0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D \
   "previewDraw(address,uint256)((bool,uint8,uint256,uint256,uint256))" \
-  0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f 900000 --rpc-url $RPC
-# (false, 5, 1400011, 0, 0)      reason 5 = UNPRICED
+  0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f 900000 --rpc-url $RPC --block $CBLOCK
+# (false, 5, 1400000, 0, 0)      reason 5 = UNPRICED
 ```
 
 The lens is deliberately stricter than the engine: it reports `priced = false` and zeroes the numbers
@@ -262,52 +272,94 @@ basket as a whole one. The engine is the one that does the per-asset arithmetic.
 
 ## 4. Live demo transactions
 
-All Base mainnet, all successful (`status = 1`), all from the deployer, all inside the contest window
-on 2026-09-07.
+All Base mainnet, all successful (`status = 1`), all from the deployer, all on 2026-09-07.
+
+The demo line was opened twice that day, because the credit engine was redeployed in the afternoon to
+close two Regulation-S holes (audit **A-09**, and the swap adapter's open `swapExactIn`). The first
+line was repaid and unwound in full before the second was opened, so nothing is stranded on the
+retired contracts and the collateral in the table below is the same collateral throughout. Both
+halves are listed; nothing has been quietly replaced.
+
+**The line as it stands now, on the engine at `0xD5d4A08C…94Ee93`:**
 
 | # | step | block | transaction |
 |---|---|---|---|
-| 1 | eligibility attestation (`AttesterRegistry`) | 50,991,370 | [`0x35191d73…27422d`](https://base.blockscout.com/tx/0x35191d733f636ece63002a9f7ca086c9beedeef533afc976f33a88edae27422d) |
-| 2 | supply 2.000000 USDC to `AftermarketVault` | 50,991,441 | [`0x29b54e7c…db7c95e`](https://base.blockscout.com/tx/0x29b54e7c8dbcdd04489acf20eee01ee0ba67a65a9259da3b253e9a680db7c95e) |
-| 3 | swap 1.000000 USDC → 0.00356308 AMZNc on Aerodrome | 50,991,489 | [`0xcbe1f83c…113c77`](https://base.blockscout.com/tx/0xcbe1f83c51be52f6308c545bb7016d57b0b97f06bf605c9a9fbebbbed9113c77) |
-| 4 | swap 1.200000 USDC → 0.00515351 NVDAc on Aerodrome | 50,991,539 | [`0x608c9266…1415160`](https://base.blockscout.com/tx/0x608c92665620e33b184368ac393555096ccfea5da6246a5610729d54d1415160) |
-| 5 | deposit NVDAc collateral | 50,991,583 | [`0xb6c040b4…bdfd032`](https://base.blockscout.com/tx/0xb6c040b4dd840bcbd3b12591fc69b778d8c87fe75846520f76fa38608bdfd032) |
-| 6 | deposit AMZNc collateral | 50,991,632 | [`0x9b6049f1…37cc76`](https://base.blockscout.com/tx/0x9b6049f1090c30fe665269dc9ea0c7645130d94cb80315b002210766d437cc76) |
-| 7 | draw 0.500000 USDC | 50,991,648 | [`0x6081374c…6727b3`](https://base.blockscout.com/tx/0x6081374c8cc00c0053b0d7ee01e10a08a70bc138a99bb4247b330dc2056727b3) |
+| 1 | eligibility attestation (`AttesterRegistry` — unchanged by the redeploy, so this one attestation still governs) | 50,991,370 | [`0x35191d73…27422d`](https://base.blockscout.com/tx/0x35191d733f636ece63002a9f7ca086c9beedeef533afc976f33a88edae27422d) |
+| 2 | swap 1.000000 USDC → 0.00356308 AMZNc on Aerodrome | 50,991,489 | [`0xcbe1f83c…113c77`](https://base.blockscout.com/tx/0xcbe1f83c51be52f6308c545bb7016d57b0b97f06bf605c9a9fbebbbed9113c77) |
+| 3 | swap 1.200000 USDC → 0.00515351 NVDAc on Aerodrome | 50,991,539 | [`0x608c9266…1415160`](https://base.blockscout.com/tx/0x608c92665620e33b184368ac393555096ccfea5da6246a5610729d54d1415160) |
+| 4 | supply 2.000000 USDC to `AftermarketVault` | 51,009,875 | [`0x9afff88f…8d00f9`](https://base.blockscout.com/tx/0x9afff88f6d8ee40f7016ac9be0e7f179af9ca8eba54e6fec1cbb2605838d00f9) |
+| 5 | open line | 51,009,900 | [`0x6283620d…f4c3c7`](https://base.blockscout.com/tx/0x6283620dde56d34a23be809df054916bcd78659aa2c41965ecbba16edef4c3c7) |
+| 6 | deposit NVDAc collateral | 51,009,936 | [`0xc159dc25…a5517c`](https://base.blockscout.com/tx/0xc159dc2567abd8435ea7077d5d4a878c72c85eda4c68e776470252b7cca5517c) |
+| 7 | deposit AMZNc collateral | 51,009,977 | [`0xcbeeef4f…f29155`](https://base.blockscout.com/tx/0xcbeeef4f98773d8d75818322f7a82cdba489067f77069702e38ddcf765f29155) |
+| 8 | draw 0.500000 USDC | 51,010,003 | [`0x64f704e6…2b2f6b`](https://base.blockscout.com/tx/0x64f704e602b34a91e2d411c9c458fae2ccabaec6f16779bdea72d19d1f2b2f6b) |
 
 Check any of them:
 
 ```bash
-cast receipt 0x6081374c8cc00c0053b0d7ee01e10a08a70bc138a99bb4247b330dc2056727b3 --rpc-url $RPC
+cast receipt 0x64f704e602b34a91e2d411c9c458fae2ccabaec6f16779bdea72d19d1f2b2f6b --rpc-url $RPC
 ```
 
-Steps 3 and 4 call the Aerodrome `SwapRouter` (`0x698cb2b6…3a92f`) directly from the wallet — they are
+Steps 2 and 3 call the Aerodrome `SwapRouter` (`0x698cb2b6…3a92f`) directly from the wallet — they are
 how the demo account acquired collateral, not a protocol code path.
 
-`AerodromeSwapAdapter` is the protocol's own venue, and it has since fired directly on mainnet — not
-through `AftermarketCredit.sweepYield` (that path still needs a multiplier increase that has never
-happened, see [MOCKS §2](MOCKS.md)), but through its own public `swapExactIn` entry point, called
-straight by the deployer:
+**Unwinding the first line, before the redeploy.** Every one of these ran against the retired engine
+at `0x4dEc9438…3bF4b3` and its vault at `0x00751166…3bd53f`, which are the addresses this document
+used to carry. They are listed so that "we redeployed" is checkable rather than asserted, and so that
+the retired contracts can be seen to hold nothing:
 
-| step | detail | block | transaction |
+| # | step | block | transaction |
 |---|---|---|---|
-| 8 | `AerodromeSwapAdapter.swapExactIn`: 0.400000 USDC → 0.00172031 NVDAc | 50,998,717 | [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37) |
+| r1 | repay the line in full (0.500035 USDC) | 51,009,463 | [`0x1f3551c5…3e5c68`](https://base.blockscout.com/tx/0x1f3551c5a57f33f2e3fe90d9ced44753fa2794af2bc7f3a55e81b355933e5c68) |
+| r2 | withdraw 0.00515351 NVDAc | 51,009,473 | [`0x2009e132…1519ff`](https://base.blockscout.com/tx/0x2009e13270c8c1469adb9624372b74dee0f78c1671170f0ee24fe69ae01519ff) |
+| r3 | withdraw 0.00356308 AMZNc | 51,009,493 | [`0x0d749644…90cef7`](https://base.blockscout.com/tx/0x0d749644b98bb3500979119c51c68dde915866fa8725bcb90ff55ebbf390cef7) |
+| r4 | redeem every vault share (2.000034 USDC) | 51,009,599 | [`0xac5b64d2…289292`](https://base.blockscout.com/tx/0xac5b64d2119b2bdde90bddf9b98bf9403b2c91d8fa8cdca67a23613b88289292) |
 
 ```bash
-cast receipt 0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37 --rpc-url $RPC
-# status 1 · to 0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF (AerodromeSwapAdapter)
-# USDC Transfer 400000 in, NVDAc Transfer 172031 out, routed through the same Slipstream
-# router (0x698cb2b6…3a92f) the demo used directly in steps 3 and 4
+# the retired engine and vault hold nothing
+cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "totalDebtAssets()(uint256)" --rpc-url $RPC   # 0
+cast call 0x00751166Ce3fa20a4143a1F0D848978Db73bd53f "totalAssets()(uint256)"    --rpc-url $RPC   # 1 — one unit of rounding dust, no shares outstanding
 ```
 
-The adapter contract itself is exercised, on real mainnet liquidity, with a real transfer in and out.
-What still hasn't happened is the specific *trigger* inside `sweepYield` — a B20 corporate action —
-which is a fact about Coinbase's tokens, not about this contract; see [MOCKS §2](MOCKS.md).
+### The swap adapter, and one transaction that needs its label corrected
+
+`AerodromeSwapAdapter` fired on mainnet on 2026-09-07 at block 50,998,717, swapping 0.400000 USDC into
+0.00172031 NVDAc: tx
+[`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37).
+
+**Earlier versions of this document presented that as evidence the component works. That framing was
+wrong and is withdrawn.** What the transaction actually shows is an arbitrary externally-owned
+account calling `swapExactIn` on a deployed, source-verified contract of ours and receiving a
+tokenized US equity, with no jurisdiction check anywhere on the path. The adapter's `swapExactIn` was
+`external` with no caller restriction, which made it a securities-swap endpoint this project
+published — not a feature, a hole. It is the same hole the review of A-09 found on `liquidate`, in a
+second place.
+
+The honest reading is narrower and still worth something: **the adapter's code path was exercised
+against real Slipstream liquidity before it was locked down.** The transfer in, the transfer out, the
+router hop and the `minOut` assertion all executed on mainnet. That is a fact about the routing code,
+which is unchanged. It is not a fact about an entry point anybody should be able to reach.
+
+The deployed adapter is now `0x71283dB3…A8465E`, its `swapExactIn` is `onlyCredit`, and the caller is
+an immutable fixed at construction with no setter. The old transaction is preserved above rather than
+deleted, because it is the evidence for both halves of that sentence. Confirm the gate yourself:
+
+```bash
+A=0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E
+cast call $A "credit()(address)" --rpc-url $RPC
+# 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93   — the credit engine, and nobody else
+
+cast call $A "swapExactIn(address,address,uint256,uint256,address)(uint256)"   0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913 0xb20000000000000000000078ee7ce2fE4908108C   100000 0 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f   --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC
+# execution reverted, data: 0xc20d0a87…0af7afc7…   = NotCredit(0x0AF7aFC7…C5c8f)
+```
+
+`sweepYield`, the in-protocol caller, still has not fired: it needs a B20 corporate action that has
+never occurred. That is a fact about Coinbase's tokens rather than about this contract; see
+[MOCKS §2](MOCKS.md).
 
 Protocol state at the reference block, one call:
 
 ```bash
-cast call 0x5A18BdEB02B30b737a2464E02A2a669BF52bC049 \
+cast call 0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D \
   "protocolView()((uint8,uint64,uint64,uint256,uint256,uint256,uint256,address[]))" --rpc-url $RPC --block $BLOCK
 # (5, 1788874200, 1788552000, 500011, 2000011, 250004124977312624, 1000005, [6 assets])
 #  ^session CLOSED_HOLIDAY   ^nextOpen  ^lastClose  ^debt   ^supplied  ^utilisation         ^share price
@@ -361,6 +413,55 @@ Suite result: ok. 1 passed; 0 failed; 0 skipped
 ```
 
 (This is the "1 skipped" in the main suite — it skips rather than fails when `BASE_RPC_URL` is unset.)
+
+### 5b. The gate is on every path that admits a security, and it cannot be lifted
+
+Three reads against the deployed engine. Nothing here needs a wallet.
+
+```bash
+C=0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93
+U=0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f
+DEAD=0x000000000000000000000000000000000000dEaD
+NVDA=0xb20000000000000000000078ee7ce2fE4908108C
+
+# 1. An account with no proven jurisdiction cannot receive seized collateral.
+cast call $C "liquidate(address,address,uint256)(uint256,uint256)" $U $NVDA 100000   --from $DEAD --rpc-url $RPC
+# execution reverted: 0x5dfbdbef…dead   = AttestationMissing(0x…dEaD)
+
+# 2. Nor can it be named as the receiver by somebody who is attested.
+cast call $C "liquidate(address,address,uint256,address)(uint256,uint256)" $U $NVDA 100000 $DEAD   --from $U --rpc-url $RPC
+# execution reverted: 0x5dfbdbef…dead   = AttestationMissing(0x…dEaD)
+
+# 3. An attested receiver clears the gate, and the next check — the one about risk — bites instead.
+cast call $C "liquidate(address,address,uint256)(uint256,uint256)" $U $NVDA 100000   --from $U --rpc-url $RPC
+# execution reverted: 0x71f55348…0af7   = NotFlagged(0x0AF7aFC7…C5c8f)
+```
+
+`0x5dfbdbef` = `cast sig "AttestationMissing(address)"`, `0x71f55348` = `cast sig "NotFlagged(address)"`.
+Reads 1 and 2 are the difference between a compliance gate and a compliance disclaimer: the address
+checked is the address the tokens would be transferred to, so an ineligible account cannot reach the
+collateral directly *or* by naming somebody else. `msg.sender` is deliberately not checked — the USDC
+leg carries no Reg-S obligation, so an unattested bot or relayer can still fund a liquidation for an
+attested receiver, which is what keeps the liquidator set large enough to be real. Audit
+[A-09](contracts/audit/AUDIT.md) has the full reasoning, including why it was accepted before and is
+not accepted now.
+
+And the gate address itself cannot be moved:
+
+```bash
+cast call $C "eligibility()(address)" --rpc-url $RPC
+# 0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C   — a public immutable
+
+cast call $C "setEligibility(address)" 0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C --rpc-url $RPC
+# execution reverted   — there is no such function
+```
+
+That is narrower than it sounds and the limit is worth stating precisely: the *address* of the gate is
+frozen, and `RegSGate` can never un-restrict `US`. What is **not** frozen is what the gate answers.
+`RegSGate.setRegistry` can still repoint the fallback source, and the `AttesterRegistry` owner is
+implicitly an attester, so a country code can still be *asserted* by our key rather than *proven* by
+Coinbase — which is exactly what the demo account's `source = 2` above is telling you.
+[CLAIMS.md](CLAIMS.md) states both halves as separate claims.
 
 ---
 
@@ -469,7 +570,7 @@ Every count below was produced by running the command, on 2026-09-07, in this re
 cd contracts
 
 forge test --no-match-path 'test/fork/*'
-# Ran 8 test suites: 255 tests passed, 0 failed, 1 skipped (256 total tests)
+# Ran 9 test suites: 273 tests passed, 0 failed, 1 skipped (274 total tests)
 #   the 1 skip is the Coinbase-attestation fork test, which needs BASE_RPC_URL — see §5
 
 FOUNDRY_TEST=audit/poc forge test

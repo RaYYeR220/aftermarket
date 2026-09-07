@@ -191,14 +191,29 @@ Steps 3 and 4 of the demo (`0xcbe1f83c…` and `0x608c9266…`) call the Aerodro
 `0x698cb2b6dd822994581fea6ea4fc755d1363a92f` straight from the wallet. That is how the demo account
 acquired collateral — a user action, not a protocol code path.
 
-`AerodromeSwapAdapter` (`0xfF81282c…cd68fF`) is the protocol's own venue, used by
-`AftermarketCredit.sweepYield`. It is deployed, verified, covered by the unit and fork suites, and — as
-of tx [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37),
-block 50,998,717 — exercised directly on mainnet: `swapExactIn` moved 0.400000 USDC into 0.00172031
-NVDAc through the same Slipstream router, called straight by the deployer rather than through
-`sweepYield`. What still has not happened is `sweepYield` itself, because it needs a multiplier
-increase that has never occurred on any listed asset (see §2 above) — the adapter is exercised, the
-corporate-action trigger that would route through it automatically is not.
+`AerodromeSwapAdapter` (`0x71283dB3…A8465E`) is the protocol's own venue, used by
+`AftermarketCredit.sweepYield` and by nothing else. It is deployed, verified, and covered by
+`contracts/test/AerodromeSwapAdapter.t.sol` (12 tests, against a mock Slipstream router) plus the fork
+suite, which builds and wires the real adapter into the live stack.
+
+An earlier version of this section said the adapter was *"covered by the unit and fork suites"* at a
+time when there was no `AerodromeSwapAdapter.t.sol` at all and every unit test used
+`test/mocks/MockSwapAdapter.sol`. That was the one overstatement in this file and it is now true
+rather than repaired by wording: the suite exists.
+
+**The adapter's routing code has run on mainnet, and the transaction that proves it also records a
+mistake.** Tx [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37)
+at block 50,998,717 moved 0.400000 USDC into 0.00172031 NVDAc through the Slipstream router: the pull,
+the approval, the router hop, the `minOut` assertion and the payout all executed for real. It was sent
+by an ordinary externally-owned account, because `swapExactIn` was `external` with no caller
+restriction — which made a contract this project deployed and advertised a swap endpoint into a
+Regulation-S security with no jurisdiction check on it. That was a hole, not a feature, and the
+adapter deployed since restricts `swapExactIn` to the credit engine through an immutable with no
+setter. The transaction is kept in the record because it is the evidence for both halves.
+
+What still has not happened is `sweepYield` itself, because it needs a multiplier increase that has
+never occurred on any listed asset (see §2 above) — the routing code is exercised, the
+corporate-action trigger that would drive it automatically is not.
 
 ### The Morpho Blue market is funded, but not with any volume
 
