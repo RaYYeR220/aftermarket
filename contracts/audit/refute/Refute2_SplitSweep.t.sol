@@ -5,11 +5,32 @@ import {console2} from "forge-std/Test.sol";
 
 import {RefuteBase} from "./RefuteBase.sol";
 import {IAftermarketCredit} from "../../src/interfaces/IAftermarketCredit.sol";
-import {Verdict} from "../../src/libraries/Types.sol";
+import {Session, Verdict} from "../../src/libraries/Types.sol";
 
 /// @notice Hostile review of CLAIM 2 ("sweepYield conflates a stock split with a dividend").
+///
+/// @dev Two engine guards decide the shape of every test below, and both landed after the review
+///      this file was first written against - see the note on `RefuteBase`:
+///
+///      1. `MAX_SWEEP_BPS = 1_000` caps a single sweep at 10% of the position, so a split-sized
+///         slice is refused with `SweepTooLarge` rather than sold. `SPLIT_MULTIPLIER` walks the
+///         old 10:1 attack into that guard; `MAX_DISTRIBUTION` is the largest move that clears it.
+///      2. `sweepYield` requires a regular session, so the closed-session execution measurements
+///         this file used to take are not reachable at all any more.
 contract Refute2_SplitSweep is RefuteBase {
     int256 internal constant P200 = 200e8;
+
+    /// @dev A 10:1 split. 90% of the position reads as distribution.
+    uint256 internal constant SPLIT_MULTIPLIER = 10e18;
+
+    /// @dev The largest multiplier move the 10% sweep cap admits on a checkpoint of 1e18:
+    ///      `(1.1 - 1.0) / 1.1 = 9.09%` of the balance.
+    uint256 internal constant MAX_DISTRIBUTION = 1.1e18;
+
+    /// @dev Raw units the engine sells for a move from `m0` to `m` on `balance` units.
+    function _slice(uint256 balance, uint256 m0, uint256 m) internal pure returns (uint256) {
+        return balance * (m - m0) / m;
+    }
 
     function setUp() public {
         _deploy(P200);
@@ -58,8 +79,7 @@ contract Refute2_SplitSweep is RefuteBase {
     ///         1000:1 split or 1:100 reverse. No realistic single corporate action reaches them.
     function test_S1b_MultiplierBoundsAreIrrelevantToRealSplits() public {
         _open(5_000e6, true);
-        uint256[8] memory ms =
-            [uint256(2e18), 4e18, 10e18, 1000e18, 1001e18, 0.1e18, 0.01e18, 0.009e18];
+        uint256[8] memory ms = [uint256(2e18), 4e18, 10e18, 1000e18, 1001e18, 0.1e18, 0.01e18, 0.009e18];
         for (uint256 i; i < ms.length; ++i) {
             uint256 snap = vm.snapshotState();
             nvda.setMultiplier(ms[i]);
@@ -117,39 +137,58 @@ contract Refute2_SplitSweep is RefuteBase {
         credit.sweepYield(alice, address(nvda));
         console2.log("post-reverse-split dividends are unsweepable until m climbs back above 1e18");
 
-        // Depositing resets the checkpoint DOWN (the `m <= m0` branch), which re-arms the whole
-        // 1e18 -> 0.101e18 gap as a future "distribution".
+        // Depositing at the trough does NOT re-arm the gap. `_rollMultiplierCheckpoint` treats the
+        // checkpoint as a high-water mark of value already accounted for and refuses to move it
+        // down, which is the whole of the defence: a one-wei deposit at the bottom of a reverse
+        // split used to rewrite it to 0.101e18, turning the multiplier merely climbing back to
+        // where it started into a sweepable "distribution" of most of the position.
         vm.prank(alice);
         credit.depositCollateral(address(nvda), 1e8);
         uint256 m0 = credit.multiplierCheckpoint(alice, address(nvda));
         console2.log("checkpoint after a post-reverse-split deposit:", m0);
-        assertEq(m0, 0.101e18, "checkpoint reset down to the live multiplier");
+        assertEq(m0, 1e18, "the checkpoint is a high-water mark and never moves down");
 
-        // If the issuer later reverses the reverse split (0.101e18 -> 1.01e18), the contract now
-        // believes 90% of the position is distribution.
+        // The issuer reversing the reverse split (0.101e18 -> 1.01e18) therefore exposes only the
+        // 1% genuinely above the high-water mark, not the 90% the old branch fabricated.
         nvda.setMultiplier(1.01e18);
         uint256 balance = credit.collateral(alice, address(nvda));
-        uint256 sellable = balance * (1.01e18 - m0) / 1.01e18;
+        uint256 sellable = _slice(balance, m0, 1.01e18);
         console2.log("balance / sellable slice:", balance, sellable);
-        assertApproxEqRel(sellable, balance * 90 / 100, 0.001e18, "90% of the position re-armed");
+        assertApproxEqRel(sellable, balance / 101, 0.001e18, "only the 1% above the high-water mark");
+
+        vm.prank(keeper);
+        (uint256 sold,,) = credit.sweepYield(alice, address(nvda));
+        assertEq(sold, sellable, "and that is exactly what the engine sells");
     }
 
-    /// @notice Nothing is double-counted and nothing is stranded in the contract: after a split-sized
-    ///         sweep, the next genuine dividend still sweeps exactly the dividend.
-    function test_S2b_NoDoubleCountAfterASplitSweep() public {
+    /// @notice The split-sized sweep this whole claim rests on does not execute: `MAX_SWEEP_BPS`
+    ///         refuses it outright. What does execute is a dividend-sized one, and successive
+    ///         dividends are neither double-counted nor stranded in the engine.
+    function test_S2b_TheSplitSizedSweepIsRefusedAndDividendsStillClear() public {
         _open(5_000e6, true);
-        nvda.setMultiplier(10e18);
+
+        // 10:1 split. 90e8 of a 100e8 position reads as distribution; the cap is 10e8.
+        nvda.setMultiplier(SPLIT_MULTIPLIER);
+        vm.prank(keeper);
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.SweepTooLarge.selector, 90e8, 10e8));
+        credit.sweepYield(alice, address(nvda));
+        console2.log("a 10:1 split is refused by the 10% sweep cap, not sold");
+
+        // A genuine 1% distribution clears, and rolls the checkpoint to exactly where it landed.
+        nvda.setMultiplier(1.01e18);
         vm.prank(keeper);
         (uint256 sold1,,) = credit.sweepYield(alice, address(nvda));
-        assertEq(sold1, 90e8, "90% sold");
-        assertEq(credit.multiplierCheckpoint(alice, address(nvda)), 10e18, "checkpoint rolled to 10e18");
+        assertEq(sold1, _slice(100e8, 1e18, 1.01e18), "the 1% distribution, and only that");
+        assertEq(credit.multiplierCheckpoint(alice, address(nvda)), 1.01e18, "checkpoint rolled to 1.01e18");
 
-        // A genuine 1% dividend on top of the split: 10e18 -> 10.1e18.
-        nvda.setMultiplier(10.1e18);
+        // A second 1% on top of the first: 1.01e18 -> 1.0201e18. None of the first is re-sold.
+        uint256 remaining = credit.collateral(alice, address(nvda));
+        nvda.setMultiplier(1.0201e18);
         vm.prank(keeper);
         (uint256 sold2,,) = credit.sweepYield(alice, address(nvda));
-        console2.log("dividend after the split sold:", sold2, "of", credit.collateral(alice, address(nvda)) + sold2);
-        assertApproxEqRel(sold2, uint256(10e8) / 101, 0.01e18, "~0.99% of the remaining balance");
+        console2.log("second dividend sold:", sold2, "of", remaining);
+        assertEq(sold2, _slice(remaining, 1.01e18, 1.0201e18), "the second 1%, off the new baseline");
+        assertApproxEqRel(sold2, remaining / 101, 0.01e18, "~0.99% of the remaining balance");
         assertEq(credit.collateral(address(credit), address(nvda)), 0, "engine holds nothing for itself");
     }
 
@@ -167,7 +206,7 @@ contract Refute2_SplitSweep is RefuteBase {
         uint256 walletBefore = usdc.balanceOf(alice);
         uint256 nwBefore = _mul(collBefore, markBefore) + walletBefore - debtBefore;
 
-        nvda.setMultiplier(10e18);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
         vm.prank(keeper);
         (uint256 sold, uint256 proceeds, uint256 repaid) = credit.sweepYield(alice, address(nvda));
 
@@ -184,27 +223,33 @@ contract Refute2_SplitSweep is RefuteBase {
     }
 
     /// @notice The actual, quantified loss: the credit engine only guarantees a fill within
-    ///         `maxSlippageBps` of `markBorrow`, and `markBorrow` itself carries the closed-session
-    ///         haircut. Measures the worst legal execution during a regular session and during a
-    ///         weekend.
+    ///         `maxSlippageBps` of `markBorrow`. Because the sweep runs only during a regular
+    ///         session the gap haircut is zero by construction, so the slippage budget is the whole
+    ///         of the exposure - and the sweep cap bounds it to a tenth of the position.
     function test_S3b_WorstLegalExecutionLoss() public {
         // regular session, no gap haircut: minOut == 99% of the mark
         _open(5_000e6, true);
-        nvda.setMultiplier(10e18);
-        uint256 fair = _mul(90e8, oracle.markBorrow());
+        uint256 slice = _slice(100e8, 1e18, MAX_DISTRIBUTION);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
+        uint256 fair = _mul(slice, oracle.markBorrow());
+        uint256 position = _mul(100e8, oracle.markBorrow());
         uint256 minOut = fair * (10_000 - 100) / 10_000;
-        adapter.setRate((minOut + 1) * 1e18 / 90e8 + 1, 1e18); // venue fills at (essentially) minOut
+        adapter.setRate((minOut + 1) * 1e18 / slice + 1, 1e18); // venue fills at (essentially) minOut
         vm.prank(keeper);
         (, uint256 proceeds,) = credit.sweepYield(alice, address(nvda));
         console2.log("REGULAR: fair value of the slice :", fair);
         console2.log("REGULAR: worst legal proceeds    :", proceeds);
         console2.log("REGULAR: loss bps of the SLICE   :", (fair - proceeds) * 10_000 / fair);
-        console2.log("REGULAR: loss bps of the POSITION:", (fair - proceeds) * 10_000 / (fair * 10 / 9));
+        console2.log("REGULAR: loss bps of the POSITION:", (fair - proceeds) * 10_000 / position);
     }
 
-    /// @notice The same sweep over a weekend, where `markBorrow` is haircut by up to 500bps before
-    ///         the 100bps slippage budget is applied on top.
-    function test_S3c_WeekendExecutionLoss() public {
+    /// @notice The weekend execution loss this claim priced does not exist, because the weekend
+    ///         sweep does not exist: `sweepYield` requires a regular session. The oracle is happily
+    ///         `TRUSTED_CLOSED` and would quote a mark; the engine refuses to trade on it anyway,
+    ///         which is the point - outside a regular session the haircut is live and the
+    ///         divergence band is at its widest, so a "1% slippage budget" would be enforcing a
+    ///         floor a long way under the anchor.
+    function test_S3c_WeekendSweepIsRefusedOutright() public {
         _open(5_000e6, true);
         // Saturday 12:00 ET. Feed frozen since Friday's close; weekend budget is 80h.
         vm.warp(_et(MON_2026_03_02 + 5, 12 hours));
@@ -212,24 +257,20 @@ contract Refute2_SplitSweep is RefuteBase {
         feed.set(P200, _et(MON_2026_03_02 + 4, T_CLOSE)); // Friday's closing print
         assertEq(uint256(oracle.peek().verdict), uint256(Verdict.TRUSTED_CLOSED), "trusted closed");
         console2.log("weekend haircutBps               :", oracle.peek().haircutBps);
+        console2.log("weekend markBorrow               :", oracle.markBorrow());
 
-        uint256 anchor = 200e6 * 90e8 / 1e8; // fair USDC value of the 90e8 slice
-        // Make the venue fill EXACTLY at the engine's minOut, which is the worst execution the
-        // credit contract will accept: markBorrow (haircut down) minus maxSlippageBps.
-        uint256 minOut = _mul(90e8, oracle.markBorrow()) * (10_000 - 100) / 10_000;
-        adapter.setRate((minOut + 1) * 1e18 / 90e8 + 1, 1e18);
-        nvda.setMultiplier(10e18);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
         vm.prank(keeper);
-        (, uint256 proceeds,) = credit.sweepYield(alice, address(nvda));
-        console2.log("weekend: fair value of the slice :", anchor);
-        console2.log("weekend: worst legal proceeds    :", proceeds);
-        console2.log("weekend: loss bps of the SLICE   :", (anchor - proceeds) * 10_000 / anchor);
-        console2.log("weekend: loss bps of the POSITION:", (anchor - proceeds) * 10_000 / (anchor * 10 / 9));
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.MarketClosed.selector, Session.CLOSED_WEEKEND));
+        credit.sweepYield(alice, address(nvda));
+        console2.log("weekend: the sweep is refused, so the weekend execution loss is zero");
     }
 
-    /// @notice The worst case of all: a sweep run late in a long weekend, where the gap haircut is
-    ///         at its 500bps cap before the 100bps slippage budget is applied on top.
-    function test_S3e_WorstCaseHaircutCapExecutionLoss() public {
+    /// @notice The worst case of all - a sweep late in a long weekend with the gap haircut pinned
+    ///         at its 500bps cap - is precisely the case the open-market requirement was written
+    ///         for. The floor that budget would have enforced is measured here, and then the sweep
+    ///         is refused anyway.
+    function test_S3e_TheWorstCaseHaircutIsNeverTradedAgainst() public {
         _open(5_000e6, true);
         // Sunday 23:00 ET: 55h since Friday's close, haircut pinned at the 500bps cap, feed age 55h
         // against an 80h weekend budget.
@@ -239,23 +280,25 @@ contract Refute2_SplitSweep is RefuteBase {
         assertEq(uint256(oracle.peek().verdict), uint256(Verdict.TRUSTED_CLOSED), "trusted closed");
         assertEq(oracle.peek().haircutBps, 500, "haircut at its cap");
 
-        uint256 anchorValue = 200e6 * 90e8 / 1e8;
-        uint256 minOut = _mul(90e8, oracle.markBorrow()) * (10_000 - 100) / 10_000;
-        adapter.setRate((minOut + 1) * 1e18 / 90e8 + 1, 1e18);
-        nvda.setMultiplier(10e18);
-        vm.prank(keeper);
-        (, uint256 proceeds,) = credit.sweepYield(alice, address(nvda));
+        uint256 slice = _slice(100e8, 1e18, MAX_DISTRIBUTION);
+        uint256 anchorValue = 200e6 * slice / 1e8;
+        uint256 floorItWouldAccept = _mul(slice, oracle.markBorrow()) * (10_000 - 100) / 10_000;
         console2.log("cap: fair value of the slice     :", anchorValue);
-        console2.log("cap: worst legal proceeds        :", proceeds);
-        console2.log("cap: loss bps of the SLICE       :", (anchorValue - proceeds) * 10_000 / anchorValue);
-        console2.log("cap: loss bps of the POSITION    :", (anchorValue - proceeds) * 10_000 / (anchorValue * 10 / 9));
+        console2.log("cap: floor the budget would set  :", floorItWouldAccept);
+        console2.log("cap: that floor is under fair by :", (anchorValue - floorItWouldAccept) * 10_000 / anchorValue);
+
+        nvda.setMultiplier(MAX_DISTRIBUTION);
+        vm.prank(keeper);
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.MarketClosed.selector, Session.CLOSED_WEEKEND));
+        credit.sweepYield(alice, address(nvda));
+        console2.log("cap: and the engine will not send that order at all");
     }
 
     /// @notice The slippage guard is a real brake: a venue that cannot absorb a 90% dump inside
     ///         `maxSlippageBps` makes the sweep revert instead of executing it.
     function test_S3d_SlippageGuardRefusesADumpTheVenueCannotAbsorb() public {
         _open(5_000e6, true);
-        nvda.setMultiplier(10e18);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
         adapter.setHaircutBps(101); // one bp past the engine's budget
         adapter.setEnforceMinOut(false); // the venue itself does not object
         vm.prank(keeper);
@@ -266,7 +309,7 @@ contract Refute2_SplitSweep is RefuteBase {
         adapter.setHaircutBps(100);
         vm.prank(keeper);
         (uint256 sold,,) = credit.sweepYield(alice, address(nvda));
-        assertEq(sold, 90e8, "a 1.00% impact fill goes through");
+        assertEq(sold, _slice(100e8, 1e18, MAX_DISTRIBUTION), "a 1.00% impact fill goes through");
     }
 
     /*//////////////////////////////////////////////////////////////
@@ -278,7 +321,7 @@ contract Refute2_SplitSweep is RefuteBase {
     function test_S4_AutoRepayIsOffByDefault() public {
         _open(5_000e6, false);
         assertFalse(credit.autoRepayEnabled(alice), "off by default");
-        nvda.setMultiplier(10e18);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
 
         vm.prank(keeper);
         vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.AutoRepayDisabled.selector, alice));
@@ -300,7 +343,7 @@ contract Refute2_SplitSweep is RefuteBase {
     ///         at any time - including after the split, before any keeper gets there.
     function test_S4b_OptOutIsACompleteDefence() public {
         _open(5_000e6, true);
-        nvda.setMultiplier(10e18);
+        nvda.setMultiplier(MAX_DISTRIBUTION);
         vm.prank(alice);
         credit.setAutoRepay(false);
         vm.prank(keeper);
@@ -313,8 +356,9 @@ contract Refute2_SplitSweep is RefuteBase {
       S5 - DOES THE SWEEP EVER MAKE THE LINE UNSAFE?
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice A split-sized sweep sells ~90% of the collateral but repays the debt out of the same
-    ///         proceeds first, so the surviving line is strictly healthier, never liquidatable.
+    /// @notice The largest sweep the cap admits sells ~9% of the collateral but repays the debt out
+    ///         of the same proceeds first, so the surviving line is strictly healthier, never
+    ///         liquidatable - tested at the top of the advance rate, where it is tightest.
     function test_S5_SweepNeverWorsensHealth() public {
         int256[1] memory unused;
         unused;
@@ -324,7 +368,7 @@ contract Refute2_SplitSweep is RefuteBase {
             _open(draws[i], true);
             (, uint256 thrBefore) = credit.riskOf(alice);
             uint256 debtBefore = credit.debtOf(alice);
-            nvda.setMultiplier(10e18);
+            nvda.setMultiplier(MAX_DISTRIBUTION);
             vm.prank(keeper);
             credit.sweepYield(alice, address(nvda));
             (, uint256 thrAfter) = credit.riskOf(alice);

@@ -4,12 +4,13 @@ pragma solidity 0.8.28;
 import {console2} from "forge-std/Test.sol";
 
 import {AuditHarness} from "../poc/Harness.sol";
+import {IAftermarketCredit} from "../../src/interfaces/IAftermarketCredit.sol";
 import {Session, Verdict} from "../../src/libraries/Types.sol";
 
-/// @notice Parameter-sensitivity check. `audit/poc/Harness.sol` is being edited while this review
-///         runs, so this file measures BOTH findings against whatever risk parameters the harness
-///         currently carries, with nothing pinned. It exists so the report can say which conclusions
-///         are structural and which are just arithmetic on a particular parameter set.
+/// @notice Parameter-sensitivity check. Unlike the rest of the suite this file pins nothing: it
+///         measures BOTH findings against whatever risk parameters `audit/poc/Harness.sol` carries,
+///         which are the deployment defaults. It exists so the report can say which conclusions are
+///         structural and which are just arithmetic on a particular parameter set.
 contract Refute3_LiveParams is AuditHarness {
     int256 internal constant P200 = 200e8;
 
@@ -94,8 +95,7 @@ contract Refute3_LiveParams is AuditHarness {
     /// @notice Which multipliers the LIVE oracle bounds now reject.
     function test_L2_LiveMultiplierBounds() public {
         _step(_et(MON_2026_03_02, T_OPEN + 5 minutes));
-        uint256[9] memory ms =
-            [uint256(0.09e18), 0.1e18, 0.5e18, 0.51e18, 2e18, 4e18, 10e18, 100e18, 101e18];
+        uint256[9] memory ms = [uint256(0.09e18), 0.1e18, 0.5e18, 0.51e18, 2e18, 4e18, 10e18, 100e18, 101e18];
         console2.log("verdict 0 == TRUSTED, 2 == UNTRUSTED_HALTED");
         for (uint256 i; i < ms.length; ++i) {
             uint256 snap = vm.snapshotState();
@@ -105,8 +105,12 @@ contract Refute3_LiveParams is AuditHarness {
         }
     }
 
-    /// @notice Does the 10:1 split sweep still execute under the live parameters?
-    function test_L3_TenForOneSplitStillSweeps() public {
+    /// @notice Does the 10:1 split sweep execute under the live parameters? No - and the reason is
+    ///         a hard constant rather than a tuning, so it does not move with the parameter set.
+    ///         `MAX_SWEEP_BPS` refuses any single sweep over a tenth of the position, which is
+    ///         above every real distribution and far below every real split. The oracle is happy
+    ///         at a 10x multiplier; the engine is the thing that says no.
+    function test_L3_TenForOneSplitCannotSweepUnderLiveParams() public {
         adapter.setRate(200e6, 1e8);
         usdc.mint(address(adapter), 50_000_000e6);
         _step(_et(MON_2026_03_02, T_OPEN + 5 minutes));
@@ -117,11 +121,21 @@ contract Refute3_LiveParams is AuditHarness {
         credit.setAutoRepay(true);
         vm.stopPrank();
 
+        console2.log("live sweep cap bps          :", credit.MAX_SWEEP_BPS());
+
         nvda.setMultiplier(10e18);
         assertEq(uint256(oracle.peek().verdict), uint256(Verdict.TRUSTED), "still trusted at 10e18");
         vm.prank(keeper);
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.SweepTooLarge.selector, 90e8, 10e8));
+        credit.sweepYield(alice, address(nvda));
+        console2.log("live params: a 10:1 split is refused, not sold");
+
+        // A distribution inside the cap still clears, so the guard is a size limit and not an
+        // outage: 1e18 -> 1.1e18 sells 9.09% of the position, just inside the 10% ceiling.
+        nvda.setMultiplier(1.1e18);
+        vm.prank(keeper);
         (uint256 sold, uint256 proceeds,) = credit.sweepYield(alice, address(nvda));
         console2.log("live params: sold / proceeds:", sold, proceeds);
-        assertEq(sold, 90e8, "still sells 90% under the live parameters");
+        assertEq(sold, uint256(100e8) * 0.1e18 / 1.1e18, "the largest distribution the cap admits");
     }
 }

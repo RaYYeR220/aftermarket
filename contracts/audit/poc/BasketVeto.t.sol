@@ -177,9 +177,7 @@ contract BasketVetoTest is AuditHarness {
         int24 poisonTick = _tickForTslaPriceWad(412e18); // +3.0%
         tslaPool.setMeanTick(poisonTick, TWAP_WINDOW);
 
-        assertEq(
-            uint256(tslaOracle.peek().verdict), uint256(Verdict.UNTRUSTED_DIVERGENT), "poison oracle is divergent"
-        );
+        assertEq(uint256(tslaOracle.peek().verdict), uint256(Verdict.UNTRUSTED_DIVERGENT), "poison oracle is divergent");
         console2.log("TSLAc divergenceBps :", tslaOracle.peek().divergenceBps);
         console2.log("TSLAc band          :", tslaOracle.peek().divergenceBand);
 

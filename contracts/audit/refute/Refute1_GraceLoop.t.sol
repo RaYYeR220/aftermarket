@@ -13,6 +13,14 @@ import {Session, Verdict} from "../../src/libraries/Types.sol";
 /// @dev All clock movement in this file is MONOTONE and refreshes the Chainlink answer whenever a
 ///      regular session is running, exactly as a live Coinbase equity feed does. Time never runs
 ///      backwards, so no measurement is contaminated by a feed timestamp from the future.
+///
+///      `cure` now requires a regular session (see the doc comment on `AftermarketCredit.cure`),
+///      which is the fix this review argued for and which closes the loop outright: the whole loop
+///      depended on clearing a flag in the evening at closed parameters. Where a test below says
+///      "curable" of a clock position, it means "healthy at the parameters live at that instant" -
+///      a pricing fact, measured through `riskOf`. Actually calling `cure()` needs that AND an open
+///      market, so the set of instants at which the flag can really be cleared is a strict subset
+///      of the ones counted here, and an in-band line has none of them at all without a repayment.
 contract Refute1_GraceLoop is RefuteBase {
     int256 internal constant P200 = 200e8;
     int256 internal constant P130 = 130e8;
@@ -72,6 +80,13 @@ contract Refute1_GraceLoop is RefuteBase {
         credit.draw(drawn, alice);
         vm.stopPrank();
         _setPriceBoth(price);
+    }
+
+    /// @dev Borrower repays principal. A cure is measured at OPEN-session parameters, so getting
+    ///      an in-band line back under its threshold takes money rather than a change of session.
+    function _repay(uint256 assets) internal {
+        vm.prank(alice);
+        credit.repay(assets);
     }
 
     function _tryFlag(address who) internal returns (bool ok, uint64 deadline) {
@@ -457,21 +472,27 @@ contract Refute1_GraceLoop is RefuteBase {
     }
 
     /// @notice The CHEAPER keeper attack does not work. Draining the Aerodrome pool under
-    ///         `minPoolLiquidityUsd` only produces UNTRUSTED_THIN while the calendar says CLOSED_*;
-    ///         the oracle treats PRE and POST as "session open", so the borrower still has the whole
-    ///         16:00-20:00 POST window to cure in. Only a sustained divergence (R5) closes it.
+    ///         `minPoolLiquidityUsd` cannot close the cure window, because inside a regular session
+    ///         - the only window `cure` runs in - a thin pool is treated as uninformative rather
+    ///         than as a price: the verdict stays TRUSTED and the mark collapses cleanly onto the
+    ///         Chainlink anchor. Only a sustained divergence (R5) closes the window.
     function test_R5d_ThinPoolDoesNotCloseTheCureWindow() public {
         _openBandLine(9_900e6, P130);
         _walkTo(MON_2026_03_02, 11 hours);
         vm.prank(keeper);
         credit.flag(alice);
 
-        _walkTo(MON_2026_03_02, T_CLOSE + 1 minutes);
+        // The borrower does what the notice is for and brings the line back inside the OPEN
+        // threshold, which is the only threshold a cure is ever measured against now.
+        _repay(1_000e6);
+
         vm.mockCall(
             address(usdc), abi.encodeWithSignature("balanceOf(address)", address(pool)), abi.encode(uint256(1e6))
         );
-        console2.log("POST verdict with a drained pool:", uint256(oracle.peek().verdict));
-        assertTrue(_tryCure(alice), "cure still lands during POST with the pool under the depth floor");
+        console2.log("REGULAR verdict with a drained pool:", uint256(oracle.peek().verdict));
+        assertEq(uint256(oracle.peek().verdict), uint256(Verdict.TRUSTED), "a thin pool is ignored while open");
+        assertTrue(_tryCure(alice), "cure still lands with the pool under the depth floor");
+        assertFalse(credit.isFlagged(alice), "and the flag is gone");
     }
 
     /// @notice A keeper cannot seize by landing `liquidate` in the same block as the close, nor by
@@ -493,17 +514,32 @@ contract Refute1_GraceLoop is RefuteBase {
         vm.prank(keeper);
         vm.expectRevert();
         credit.liquidate(alice, address(nvda), 1_000e6);
-        assertTrue(_tryCure(alice), "cure lands the instant the bell rings");
+
+        // The bell freezes the borrower's side on the same condition, for the same reason: there is
+        // no continuous price discovery after it, so neither seizing nor clearing a flag is allowed
+        // to act on the mark. The flag simply survives the night; the window reopens with the
+        // market, and until then nobody can take anything.
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.MarketClosed.selector, Session.POST));
+        credit.cure(alice);
+        assertTrue(credit.isFlagged(alice), "the flag survives the bell, and so does the collateral");
     }
 
-    /// @notice A keeper cannot pre-emptively re-flag in the same block as the cure.
+    /// @notice A keeper cannot pre-emptively re-flag in the same block as the cure. Flag and cure
+    ///         are exact complements at every instant, so the state that admits one forbids the
+    ///         other, and there is no ordering that gets both into one block.
     function test_R5c_NoImmediateReflag() public {
         _openBandLine(9_900e6, P130);
         _walkTo(MON_2026_03_02, 11 hours);
         vm.prank(keeper);
         credit.flag(alice);
-        _walkTo(MON_2026_03_02, T_CLOSE + 1 minutes);
+
+        // A cure now costs a real repayment inside the regular session. That is the point of the
+        // open-market requirement: nothing about the passage of a closing bell clears a flag.
+        _repay(1_000e6);
         assertTrue(_tryCure(alice), "cured");
+        assertFalse(credit.isFlagged(alice), "flag cleared");
+
         (bool ok,) = _tryFlag(alice);
         assertFalse(ok, "keeper cannot re-flag in the same block");
     }
@@ -539,17 +575,24 @@ contract Refute1_GraceLoop is RefuteBase {
       R7 - PRICE OF THE LOOP
     //////////////////////////////////////////////////////////////*/
 
+    /// @notice What a cure costs, now that it costs something real. The loop this section was
+    ///         written to price - one free `cure()` every evening, forever - no longer exists,
+    ///         because a cure has to be paid for in principal inside a regular session. The gas
+    ///         number is kept because it is the floor on what a genuine recovery costs.
     function test_R7_GasPerCure() public {
         _openBandLine(9_900e6, P130);
         _walkTo(MON_2026_03_02, 11 hours);
         vm.prank(keeper);
         credit.flag(alice);
-        _walkTo(MON_2026_03_02, T_CLOSE + 1 minutes);
+
+        uint256 debtBefore = credit.debtOf(alice);
+        _repay(1_000e6);
 
         uint256 g0 = gasleft();
         vm.prank(alice);
         credit.cure(alice);
         uint256 used = g0 - gasleft();
+        console2.log("principal needed to cure    :", debtBefore - credit.debtOf(alice));
         console2.log("gas per cure()              :", used);
         console2.log("gas per trading year (252x) :", used * 252);
     }

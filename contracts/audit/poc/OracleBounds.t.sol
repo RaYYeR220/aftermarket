@@ -246,9 +246,7 @@ contract OracleBoundsTest is AuditHarness {
 
         adapter.setHaircutBps(1_000);
         vm.prank(keeper);
-        vm.expectRevert(
-            abi.encodeWithSelector(IAftermarketCredit.MarketClosed.selector, Session.CLOSED_OVERNIGHT)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.MarketClosed.selector, Session.CLOSED_OVERNIGHT));
         credit.sweepYield(alice, address(nvda));
 
         // At the opening bell the haircut is gone, and a venue trying the same 10% fill is refused
