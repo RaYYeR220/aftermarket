@@ -86,8 +86,8 @@ collateral into the live demo line:
 
 ```bash
 U=0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f
-for B in 50991631 50991632; do
-  cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "draw(uint256,address)" 900000 $U \
+for B in 51009976 51009977; do
+  cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" 900000 $U \
     --from $U --rpc-url $RPC --block $B
 done
 ```
@@ -106,8 +106,8 @@ withdrawable, and unseizable. The arithmetic closes with nothing left over: `515
 And the other direction, at the head:
 
 ```bash
-cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "flag(address)" $U --from $U --rpc-url $RPC
-# LineHealthy(debt = 500011, seizureThreshold = 1069403)
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" $U --from $U --rpc-url $RPC
+# LineHealthy(debt = 500000, seizureThreshold = 1067800)     # at block 51,010,200; both move
 ```
 
 The bar to seize this line is **2.14× the debt**, because `markLiquidate` is the optimistic mark and
@@ -119,7 +119,8 @@ the market makes the position harder to take, not easier.
 ## 3 · The addresses — 30 seconds
 
 All seventeen deployed contracts are source-verified **exact match** on Sourcify, with no explorer API
-key. The ten top-level ones are also on Blockscout.
+key. Five of the top-level ones are also on Blockscout; the five redeployed on 2026-09-07 could
+not be submitted, because Blockscout's API has been returning 503 to every request since.
 
 | | |
 |---|---|
@@ -128,11 +129,11 @@ key. The ten top-level ones are also on Blockscout.
 | `RegSGate` | [`0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C`](https://repo.sourcify.dev/8453/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C) |
 | `SessionRateModel` | [`0x6d5152d81982DEb660736fC514761E18533a2343`](https://repo.sourcify.dev/8453/0x6d5152d81982DEb660736fC514761E18533a2343) |
 | `AftermarketOracleFactory` | [`0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A`](https://repo.sourcify.dev/8453/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A) |
-| `AerodromeSwapAdapter` | [`0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF`](https://repo.sourcify.dev/8453/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF) |
-| `AftermarketCredit` | [`0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3`](https://repo.sourcify.dev/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3) |
-| `AftermarketVault` | [`0x00751166Ce3fa20a4143a1F0D848978Db73bd53f`](https://repo.sourcify.dev/8453/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f) |
-| `AutoRepayer` | [`0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A`](https://repo.sourcify.dev/8453/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A) |
-| `AftermarketLens` | [`0x5A18BdEB02B30b737a2464E02A2a669BF52bC049`](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) |
+| `AerodromeSwapAdapter` | [`0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E`](https://repo.sourcify.dev/8453/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E) |
+| `AftermarketCredit` | [`0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93`](https://repo.sourcify.dev/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93) |
+| `AftermarketVault` | [`0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697`](https://repo.sourcify.dev/8453/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697) |
+| `AutoRepayer` | [`0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404`](https://repo.sourcify.dev/8453/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404) |
+| `AftermarketLens` | [`0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D`](https://repo.sourcify.dev/8453/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D) |
 | oracles | NVDAc [`0x1E2b20B4…00b02`](https://repo.sourcify.dev/8453/0x1E2b20B4703F97710c2600eA73179c6CD1E00b02) · AAPLc [`0x6cE58FE7…9a8dc`](https://repo.sourcify.dev/8453/0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc) · METAc [`0xf5Cc0cc9…8dEf2`](https://repo.sourcify.dev/8453/0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2) · GOOGLc [`0x203cDf7e…1C9aA`](https://repo.sourcify.dev/8453/0x203cDf7e33eA0d652cA54f4807c9d2d1d081C9aA) · TSLAc [`0x74058d51…c2C99`](https://repo.sourcify.dev/8453/0x74058d51B3b04Ba09be2aa51ab1CE930Dd3c2C99) · AMZNc [`0x6FEEF51B…3bb5C`](https://repo.sourcify.dev/8453/0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C) |
 | negative control | [`0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58`](https://repo.sourcify.dev/8453/0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58) |
 | Morpho Blue market | `0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479` (funded, **tiny**: $0.50 total) |
@@ -214,20 +215,25 @@ cd contracts && FOUNDRY_TEST=audit/poc forge test      # 43 passed, 0 failed
 | +2 min | [MOCKS.md](MOCKS.md) — the exact real-versus-simulated line, four simulated inputs, three project caveats |
 | +2 min | [CLAIMS.md](CLAIMS.md) — 60 statements tagged `REPRODUCIBLE` / `VERIFIED-LIVE` / `MODELED` / `NOT-CLAIMED`, plus a 15-item explicit not-claimed list |
 | +3 min | [README.md](README.md) — the product, the architecture, and the honest limits |
-| +5 min | `cd contracts && forge test --no-match-path 'test/fork/*'` → 255 passed, 0 failed, 1 skipped |
+| +5 min | `cd contracts && forge test --no-match-path 'test/fork/*'` → 273 passed, 0 failed, 1 skipped |
 | +5 min | `BASE_RPC_URL=<archive> base-forge test --match-path 'test/fork/*'` → 8 passed, against live and historical mainnet state |
 
-## The four things we would flag ourselves
+## The things we would flag ourselves
 
 Because you will find them, and it is better that we say them first.
 
 1. **No Basescan verification.** No API key. Sourcify covers all 17
-   contracts `exact_match`; Blockscout covers the ten top-level ones and structurally cannot cover the
+   contracts `exact_match`; Blockscout covers five of the top-level ones and structurally cannot cover the
    seven factory oracles.
-2. **The Morpho Blue market is funded but tiny**, and `AerodromeSwapAdapter.swapExactIn` has since
-   fired directly on mainnet (0.4 USDC → 0.00172031 NVDAc, tx `0xcf9150ed…1f9a37`) — though `sweepYield`,
-   the corporate-action path through it, still hasn't, because no B20 has had one. Both integrations
-   are real and exercised; neither has volume. [PROOF §11](PROOF.md#11-morpho-blue-integration).
+2. **The Morpho Blue market is funded but tiny.** One supplier, one borrower, both the deployer,
+   $0.50 total. It proves the `IOracle` integration end to end and it is not liquidity.
+   [PROOF §11](PROOF.md#11-morpho-blue-integration).
+2b. **The swap adapter was publicly callable until 2026-09-07, and one arbitrary EOA used it** to swap
+   USDC into a tokenized US equity (tx `0xcf9150ed…1f9a37`). We had presented that transaction as
+   evidence the component works; it is better read as evidence that we shipped a securities-swap
+   endpoint with no jurisdiction check on it. `swapExactIn` is now `onlyCredit` on a redeployed
+   adapter, and the correction is written up in [PROOF §4](PROOF.md). `sweepYield`, the in-protocol
+   caller, still has not fired, because no B20 has had a corporate action.
 3. **Demo eligibility is attested by our own registry, not Coinbase's** — we hold no Coinbase account.
    The Coinbase read path is real and proven against a genuinely attested third party
    (`0xc799DD32…bB6d7`, country `PL`), and the deployed gate reports the difference in its own return
@@ -235,3 +241,9 @@ Because you will find them, and it is better that we say them first.
 4. **The weekend replay's 11,557 → 6,921 borrowing-power contraction is modeled**, not measured: real
    historical chain state at real pinned blocks, but the fork fixture's risk parameters rather than the
    deployed ones. Labelled everywhere it appears. [MOCKS, project-level caveats](MOCKS.md).
+5. **"An owner key cannot admit a US person" would be too strong.** What is true: the credit engine's
+   gate address is immutable with no setter, and `RegSGate` reverts
+   `UnitedStatesIsPermanentlyRestricted()` if asked to un-restrict `US`. What is still possible: the
+   fallback registry behind the gate is owner-settable and its owner is implicitly an attester, so a
+   jurisdiction can be asserted by our key rather than proven by Coinbase — which is what our own demo
+   account does, visibly, as `source = 2`. [CLAIMS.md](CLAIMS.md) claims 68-74.

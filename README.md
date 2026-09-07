@@ -135,7 +135,7 @@ the AMZNc collateral deposit landed:
 
 ```bash
 # block 50991631 — before the AMZNc deposit
-cast call 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 "draw(uint256,address)" \
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" \
   900000 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f \
   --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block 50991631
 # Undercollateralized(900000, 562916)
@@ -197,7 +197,7 @@ flowchart TB
     GATE --> CREDIT
     RATE --> CREDIT
     VAULT <--> CREDIT
-    SWAP --> CREDIT
+    CREDIT --> SWAP
     SPM --> AUTO
     AUTO --> CREDIT
     CREDIT --> LENS
@@ -221,11 +221,11 @@ zero to the seizure threshold, and can never be seized. See [the audit, A-02](co
 | `RegSGate` | [`0xF87B4d3a…dD67C`](https://repo.sourcify.dev/8453/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C) | [Sourcify](https://repo.sourcify.dev/8453/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C) · [Blockscout](https://base.blockscout.com/address/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C?tab=contract) |
 | `SessionRateModel` | [`0x6d5152d8…3a2343`](https://repo.sourcify.dev/8453/0x6d5152d81982DEb660736fC514761E18533a2343) | [Sourcify](https://repo.sourcify.dev/8453/0x6d5152d81982DEb660736fC514761E18533a2343) · [Blockscout](https://base.blockscout.com/address/0x6d5152d81982DEb660736fC514761E18533a2343?tab=contract) |
 | `AftermarketOracleFactory` | [`0xD10f2f4a…1c1f8A`](https://repo.sourcify.dev/8453/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A) | [Sourcify](https://repo.sourcify.dev/8453/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A) · [Blockscout](https://base.blockscout.com/address/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A?tab=contract) |
-| `AerodromeSwapAdapter` | [`0xfF81282c…cd68fF`](https://repo.sourcify.dev/8453/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF) | [Sourcify](https://repo.sourcify.dev/8453/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF) · [Blockscout](https://base.blockscout.com/address/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF?tab=contract) |
-| `AftermarketCredit` | [`0x4dEc9438…3bF4b3`](https://repo.sourcify.dev/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3) | [Sourcify](https://repo.sourcify.dev/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3) · [Blockscout](https://base.blockscout.com/address/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3?tab=contract) |
-| `AftermarketVault` | [`0x00751166…3bd53f`](https://repo.sourcify.dev/8453/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f) | [Sourcify](https://repo.sourcify.dev/8453/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f) · [Blockscout](https://base.blockscout.com/address/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f?tab=contract) |
-| `AutoRepayer` | [`0xEFC7ce78…ee681A`](https://repo.sourcify.dev/8453/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A) | [Sourcify](https://repo.sourcify.dev/8453/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A) · [Blockscout](https://base.blockscout.com/address/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A?tab=contract) |
-| `AftermarketLens` | [`0x5A18BdEB…2bC049`](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) | [Sourcify](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) · [Blockscout](https://base.blockscout.com/address/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049?tab=contract) |
+| `AerodromeSwapAdapter` | [`0x71283dB3…A8465E`](https://repo.sourcify.dev/8453/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E) | [Sourcify](https://repo.sourcify.dev/8453/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E) · [Blockscout](https://base.blockscout.com/address/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E?tab=contract) |
+| `AftermarketCredit` | [`0xD5d4A08C…94Ee93`](https://repo.sourcify.dev/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93) | [Sourcify](https://repo.sourcify.dev/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93) · [Blockscout](https://base.blockscout.com/address/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93?tab=contract) |
+| `AftermarketVault` | [`0x00ee9924…bd2697`](https://repo.sourcify.dev/8453/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697) | [Sourcify](https://repo.sourcify.dev/8453/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697) · [Blockscout](https://base.blockscout.com/address/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697?tab=contract) |
+| `AutoRepayer` | [`0xBe1EA7CA…0A2404`](https://repo.sourcify.dev/8453/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404) | [Sourcify](https://repo.sourcify.dev/8453/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404) · [Blockscout](https://base.blockscout.com/address/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404?tab=contract) |
+| `AftermarketLens` | [`0x27BFaddE…A6735D`](https://repo.sourcify.dev/8453/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D) | [Sourcify](https://repo.sourcify.dev/8453/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D) · [Blockscout](https://base.blockscout.com/address/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D?tab=contract) |
 
 Six production oracles and one negative control, all `AftermarketOracle`, all verified on Sourcify:
 
@@ -248,8 +248,10 @@ Machine-readable manifest with constructor arguments:
 [`contracts/deployments/8453.json`](contracts/deployments/8453.json).
 Verification record and how to re-run it: [`docs/verification.md`](docs/verification.md).
 
-> **Verified where, exactly.** All 17 are `exact_match` on Sourcify. The ten top-level contracts are
-> also on Blockscout. The seven oracles are **not** on Blockscout and could not be made to be: they
+> **Verified where, exactly.** All 17 are `exact_match` on Sourcify. Five of the top-level contracts
+> are also on Blockscout; the other five were redeployed on 2026-09-07 for the Reg-S changes below and
+> could not be submitted, because `base.blockscout.com/api` has been returning 503 to every request
+> since.   The seven oracles are **not** on Blockscout and could not be made to be: they
 > were created by `CREATE2` from inside the factory, Blockscout indexed no creation transaction for
 > them, and its verifier matches on creation bytecode. Sourcify matches *runtime* bytecode too, which
 > is the match that proves the code running at those addresses is the code in this repository.
@@ -284,7 +286,7 @@ Everything else:
 
 ```bash
 pnpm build                                     # all workspace packages
-cd contracts && forge test --no-match-path 'test/fork/*'      # 255 passed, 0 failed, 1 skipped
+cd contracts && forge test --no-match-path 'test/fork/*'      # 273 passed, 0 failed, 1 skipped
 cd contracts && FOUNDRY_TEST=audit/poc forge test             #  43 passed, 0 failed
 cd contracts && BASE_RPC_URL=… base-forge test --match-path 'test/fork/*'   # 8 passed, 0 failed
 cd web && pnpm dev                             # the app, on http://localhost:3000
@@ -360,10 +362,20 @@ We would rather you read these here than find them yourself.
   can be seized. It cannot be extended in place; reaching it means redeploying the calendar, every
   oracle and the engine.
 - **The owner key is a single EOA and is not timelocked.** `0x0AF7aFC7…C5c8f` can repoint any oracle,
-  rate model, compliance gate or swap venue on `AftermarketCredit`. `setAsset` validates that the
-  oracle it installs actually prices the asset it is installed for, which removes the accidental
-  version of the worst case, but not the malicious one. This should be a timelocked multisig on day
-  one and it is not.
+  rate model or swap venue on `AftermarketCredit`. `setAsset` validates that the oracle it installs
+  actually prices the asset it is installed for, which removes the accidental version of the worst
+  case, but not the malicious one. This should be a timelocked multisig on day one and it is not. The
+  one thing that key cannot do is move the compliance gate: `eligibility` is immutable and there is no
+  `setEligibility`.
+- **The jurisdiction gate is real in bytecode and narrower than it sounds.** Every path by which this
+  protocol moves a tokenized security into an account is gated: `openLine`, `depositCollateral` and
+  `draw` on the caller, and `liquidate` on the account the seized collateral is transferred to. Paths
+  out are never gated, because a compliance rule that can trap somebody's collateral is a bug. The
+  engine's gate address is immutable and `RegSGate` can never un-restrict `US`. **What is not
+  guaranteed:** the registry behind the gate is still owner-settable and its owner is implicitly an
+  attester, so a jurisdiction can be *asserted* by our key rather than *proven* by Coinbase - which is
+  exactly what the demo account does, and the gate says so on chain by reporting `source = 2`.
+  [CLAIMS.md](CLAIMS.md) claims 68-74 state each half separately.
 - **The Morpho Blue market is funded but tiny.** A real supply, a real collateral deposit and a real
   borrow — Morpho's own health check called our `price()` to authorise it — but one supplier, one
   borrower, both the deployer, $0.50 total. It proves the `IOracle` integration end to end; it is not a
