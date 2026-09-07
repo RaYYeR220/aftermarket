@@ -1,0 +1,20 @@
+{
+  "name": "aftermarket",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Credit on tokenized equities that knows when the price cannot be trusted.",
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test:contracts": "cd contracts && forge test",
+    "verify:onchain": "node scripts/verify-onchain.mjs"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "pnpm": {
+    "//": "The workspace renders one React. @aftermarket/session-oracle declares React 18 dev types so it can be published against React 18 and 19 alike; without this pin, adding it to the web app puts two copies of @types/react on the resolution path and every JSX child becomes structurally incompatible with itself.",
+    "overrides": {
+      "@types/react": "19.2.18",
+      "@types/react-dom": "19.2.7"
+    }
+  }
+}

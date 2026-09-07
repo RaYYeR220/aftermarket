@@ -1,0 +1,39 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# build output
+out/
+dist/
+cache/
+cache_forge/
+broadcast/
+.next/
+*.tsbuildinfo
+
+# test output
+coverage/
+lcov.info
+
+# environment
+.env
+.env.*
+!.env.example
+*.key
+
+# working notes and design exploration
+notes/
+ui-prototypes/
+mockups/
+design-ref/
+audit/scratch/
+video/
+*.mp4
+
+# editor / os
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+.vercel
