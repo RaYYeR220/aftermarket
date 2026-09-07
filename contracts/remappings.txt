@@ -1,0 +1,6 @@
+forge-std/=lib/forge-std/src/
+openzeppelin-contracts/=lib/openzeppelin-contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+morpho-blue/=lib/morpho-blue/
+eas-contracts/=lib/verifications/lib/eas-contracts/contracts/
+verifications/=lib/verifications/src/
