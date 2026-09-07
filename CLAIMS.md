@@ -1,0 +1,169 @@
+# CLAIMS
+
+Every public statement Aftermarket makes, tagged by how strong the evidence behind it actually is,
+with a link to that evidence. Written so that a reviewer never has to guess which tier a sentence
+belongs to, and so that we cannot quietly upgrade one later.
+
+## The tiers
+
+| tag | means |
+|---|---|
+| **`REPRODUCIBLE`** | Deterministic. Run the command, get the same bytes. Block-pinned chain reads, test suites, source-verification status, file contents. |
+| **`VERIFIED-LIVE`** | Observed on Base mainnet at a stated block or moment. The *behaviour* reproduces; the exact number may have moved since, and we say which numbers move. |
+| **`MODELED`** | Produced by a simulation or a test fixture whose parameters we chose. The mechanism is real code on real data; the magnitude belongs to the model. Never presented as a measurement. |
+| **`NOT-CLAIMED`** | Something a reader might reasonably assume we are asserting, that we are not. |
+
+Reference block for the `--block` reads: **50,997,343** (2026-09-07 12:27:13 UTC).
+
+---
+
+## Contracts and verification
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 1 | Ten protocol contracts, six production oracles and one negative control are deployed on Base mainnet (chainId 8453) at the addresses published. | `REPRODUCIBLE` | [`contracts/deployments/8453.json`](contracts/deployments/8453.json); `cast code <addr>` |
+| 2 | All seventeen are source-verified **exact match** on Sourcify, without an explorer API key. | `REPRODUCIBLE` | [docs/verification.md](docs/verification.md); `scripts/verify-sources.sh status` |
+| 3 | The ten top-level contracts are also source-verified on Blockscout. | `VERIFIED-LIVE` | Each observed `is_verified: true` on 2026-09-07; [docs/verification.md](docs/verification.md) |
+| 4 | The seven oracles are verified on Blockscout. | **`NOT-CLAIMED`** | They are not. Blockscout indexed no creation transaction for a `CREATE2` deploy from inside the factory (`creation_bytecode: null` in its own API) and its verifier matches on creation bytecode; three submission routes were tried and none landed. Verified `exact_match` on Sourcify, which matches runtime bytecode. [docs/verification.md](docs/verification.md) |
+| 5 | Anything is verified on Basescan. | **`NOT-CLAIMED`** | No API key was available. Basescan pages will show unverified bytecode. |
+| 6 | Compiler settings match the deploy exactly: solc 0.8.28, optimizer on, 200 runs, `evm_version = cancun`, `via_ir = false`. | `REPRODUCIBLE` | [`contracts/foundry.toml`](contracts/foundry.toml); Sourcify would not have produced an exact match otherwise |
+| 7 | The negative control differs from the production NVDAc oracle in exactly one constructor field — the six-entry divergence band array (25 bps everywhere vs `500/500/500/200/250/300`). | `REPRODUCIBLE` | [`script/DeployNegativeControl.s.sol`](contracts/script/DeployNegativeControl.s.sol), `AftermarketConfig._oracleConfig`; `collateralToken()`/`loanToken()`/`feed()`/`pool()`/`calendar()` are identical on chain — [PROOF §2c](PROOF.md) |
+
+## The oracle, live
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 8 | `NVDAc.price()` returns `2184594350000000000000000000000000000` ($218.459435). | `REPRODUCIBLE` at block 50,997,343 | [PROOF §2a](PROOF.md) |
+| 9 | That mark equals `min(anchor, pool) × (1 − 500 bps)` = `229.9573 × 0.95`, exactly. | `REPRODUCIBLE` | `peek()` at the same block — [PROOF §2a](PROOF.md) |
+| 10 | `AMZNc.price()` reverts `SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence, band=300)`, selector `0x1047f22b`. | `REPRODUCIBLE` | [PROOF §2b](PROOF.md); `cast sig "SourcesDiverged(uint8,uint256,uint256)"` |
+| 11 | The AMZNc divergence figure is a specific fixed number. | **`NOT-CLAIMED`** | It moves with the pool: **886** bps at block 50,991,632, **897** at 50,997,343, **912** in the Sunday snapshot. The session, the band and the refusal are what is stable. |
+| 12 | The negative control reverts `SourcesDiverged(5, 105, 25)` on **NVDAc**, the same asset and block where the production oracle answers. | `REPRODUCIBLE` at block 50,997,343 | [PROOF §2c](PROOF.md) |
+| 13 | The gap between two real Chainlink prints across this weekend is 89 h 30 m (Fri 16:00 ET → Tue 09:30 ET). | `REPRODUCIBLE` | `nextOpen` − `lastClose` = 1788874200 − 1788552000 = 322,200 s, from `peek()` — [PROOF §2a](PROOF.md) |
+| 14 | Deployed oracle parameters are twap 1800 s, haircut 25 bps + 15 bps/h capped at 500 bps, depth floor $25,000, multiplier bounds `[0.01e18, 1e21]`. | `REPRODUCIBLE` | `cast call <oracle> "baseHaircutBps()(uint16)"` etc. — every one is a public immutable |
+
+## The credit engine, live
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 15 | `draw(900000, self)` reverts `Undercollateralized(debtAfter, 562916)`, selector `0x5033ec12`. | `REPRODUCIBLE` at block 50,997,343 | [PROOF §3a](PROOF.md) |
+| 16 | `flag(self)` reverts `LineHealthy(debt, seizureThreshold)`, selector `0x0d007982`, with the threshold more than double the debt. | `REPRODUCIBLE` at block 50,997,343 | [PROOF §3b](PROOF.md) |
+| 17 | **Borrowing power was 562,916 before depositing $1.00 of AMZNc and 562,916 after.** | `REPRODUCIBLE` | Two archive calls at blocks 50,991,631 and 50,991,632, both returning `Undercollateralized(900000, 562916)` — [PROOF §3c](PROOF.md) |
+| 18 | All 562,916 of that comes from the NVDAc leg: `515351 × 2.18459435 × 0.50 = 562916.45`. | `REPRODUCIBLE` | Arithmetic over on-chain values — [PROOF §3c](PROOF.md) |
+| 19 | An asset whose oracle refuses to mark contributes zero borrowing power **and** zero seizure threshold, and can never be seized, while remaining held and withdrawable. | `REPRODUCIBLE` | `AftermarketCredit._borrowPower` / `_seizureThreshold` / `_quoteSeizure`; `audit/poc/BasketVeto.t.sol` (4/4); `test/fork/LiveB20.t.sol::test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` |
+| 20 | The exact debt and seizure-threshold figures are stable. | **`NOT-CLAIMED`** | Debt accrues every second; the threshold tracks the pool TWAP. Both are pinned by `--block`. |
+
+## Morpho Blue
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 21 | Morpho Blue reads `IOracle.price()` in exactly three functions — `borrow`, `withdrawCollateral`, `liquidate` — and in none of `supply`, `withdraw`, `repay`, `supplyCollateral`. | `REPRODUCIBLE` | `lib/morpho-blue/src/Morpho.sol:258`, `:337`, `:361`, `:518`; `grep -n "price()" contracts/lib/morpho-blue/src/Morpho.sol` |
+| 22 | A reverting oracle therefore freezes new borrowing and seizure while leaving repayment and collateral supply open. | `REPRODUCIBLE` | Follows from 21, in Morpho's audited code, not ours |
+| 23 | A Morpho Blue market exists with USDC loan, NVDAc collateral, our oracle, AdaptiveCurveIRM and 77% LLTV. | `REPRODUCIBLE` | `idToMarketParams(0xfef5641f…)` — [PROOF §11](PROOF.md) |
+| 24 | That market has liquidity, users, or borrow activity. | **`NOT-CLAIMED`** | `market(id)` returns zero supply and zero borrow. It is created and empty. |
+
+## Compliance
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 25 | The deployed `RegSGate` reads live Coinbase Verifications EAS attestations on Base and admits a genuinely attested third party as `(true, "PL", source=COINBASE)`. | `REPRODUCIBLE` | `cast call` on the deployed gate for `0xc799DD32…bB6d7` — [PROOF §5](PROOF.md) |
+| 26 | The same gate returns `(false, 0x0000, SOURCE_NONE)` for an unattested address. | `REPRODUCIBLE` | Same section |
+| 27 | `test_Fork_RealCoinbaseAttestationOnBaseMainnet` passes against mainnet. | `REPRODUCIBLE` | `BASE_RPC_URL=… forge test --match-test test_Fork_RealCoinbaseAttestationOnBaseMainnet` |
+| 28 | The demo account is Coinbase-verified. | **`NOT-CLAIMED`** | It is not. It is attested by our own `AttesterRegistry` and the gate reports `source = 2` on chain. [MOCKS §1](MOCKS.md) |
+| 29 | This constitutes legal Reg-S compliance. | **`NOT-CLAIMED`** | It is a jurisdiction gate on origination. It is not legal advice, not a licence, and it does not cover secondary distribution — liquidators are deliberately not gated (audit A-09). |
+
+## Systemic evidence
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 30 | At Base block 50,979,049 (Sun 2026-09-06 22:17 ET) five of the ten priced tokenized stocks were more than 150 bps from their Chainlink feed: AMZNc 912, MSFTc 479, SNDKc 221, SPCXc 154, MSTRc 153. | `REPRODUCIBLE` | [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json) — block-pinned |
+| 31 | Feed ages in that snapshot ran from 52.8 h (MSTRc) to 59.9 h (GOOGLc). | `REPRODUCIBLE` | Same file |
+| 32 | The same divergences are present right now. | `VERIFIED-LIVE` | `pnpm verify:onchain` regenerates the table at the current head. The pattern persists; the numbers move. |
+| 33 | These divergences represent a mispricing, an arbitrage, or a fault in Chainlink's feeds. | **`NOT-CLAIMED`** | The feeds are doing exactly what a total-return equity reference is specified to do. The gap is structural, not a bug in anyone's product. |
+
+## The weekend replay
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 34 | The mechanism — haircut widening with every closed hour, marks moving apart, seizure threshold rising while the market is shut, hard `UNTRUSTED_STALE` stop at the next bell — runs on real historical Base state at six pinned blocks. | `REPRODUCIBLE` | `test/fork/WeekendReplay.t.sol`, 2/2 passing under `base-forge` |
+| 35 | Borrowing power on 100 NVDAc contracts **11,557 → 6,921** USDC across the weekend. | **`MODELED`** | Real chain state, but the **fork fixture's** risk parameters, not the deployed ones (haircut 100 bps + 25 bps/h capped 1500, advance 3500 closed). The deployed protocol would contract less. [MOCKS, project-level caveats](MOCKS.md) |
+| 36 | AMZNc goes `TRUSTED → TRUSTED_CLOSED → UNTRUSTED_DIVERGENT → UNTRUSTED_STALE` over the same instants. | `REPRODUCIBLE` | Same test; the verdict transitions are driven by real historical feed and pool data |
+| 37 | A healthy line becomes flaggable during a real closed market. | **`NOT-CLAIMED`** | It cannot, on real weekend data — that is the product. The flag/grace/liquidate test applies a labelled 50% shock to both sources to reach the rest of the machinery. [MOCKS §3](MOCKS.md) |
+
+## Tests
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 38 | `forge test --no-match-path 'test/fork/*'` → **255 passed, 0 failed, 1 skipped**. | `REPRODUCIBLE` | Run on 2026-09-07. The skip is the Coinbase fork test, which needs `BASE_RPC_URL`. |
+| 39 | `FOUNDRY_TEST=audit/poc forge test` → **43 passed, 0 failed**. | `REPRODUCIBLE` | Run on 2026-09-07 |
+| 40 | `base-forge test --match-path 'test/fork/*'` → **8 passed, 0 failed** (6 `LiveB20`, 2 `WeekendReplay`). | `REPRODUCIBLE` | Run on 2026-09-07 with a Base mainnet archive RPC |
+| 41 | The fork suite requires `base-forge`, because a B20 token is a Rust precompile and `eth_getCode` returns `0xef`. | `REPRODUCIBLE` | `cast code 0xb20000000000000000000078ee7ce2fE4908108C`; [`contracts/test/fork/README.md`](contracts/test/fork/README.md) |
+| 42 | These test counts imply an absence of bugs. | **`NOT-CLAIMED`** | See the audit. We found seventeen problems in our own code; a passing suite is a floor, not a ceiling. |
+
+## The keeper and its eval
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 43 | 32/32 correct · 0 false actions · 11/11 traps refused · 6/6 negative controls acted · 0 invariant violations. | `REPRODUCIBLE` | [`agent/eval/results/latest.txt`](agent/eval/results/latest.txt) |
+| 44 | Answer key hash `271c4b7c7cafadba04e8faf9c69daf301bb7f14a4a017e8789f50428b2fdddd4`. | `REPRODUCIBLE` | [`agent/eval/results/latest.json`](agent/eval/results/latest.json), field `answerKeyHash` |
+| 45 | Each scenario is scored against three independent verdicts — the expected label, the keeper engine, and the contract's own `simulate()` — and all three agree on all 32. | `REPRODUCIBLE` | The per-scenario columns in `latest.txt` |
+| 46 | There is no LLM anywhere in the keeper's decision path. | `REPRODUCIBLE` | `agent/src/engine.ts` is a pure `bigint` function; the keeper stands down and records `engine-mismatch` rather than breaking a tie with the contract |
+| 47 | The keeper cannot exceed the user's mandate. | `REPRODUCIBLE` | Coinbase `SpendPermissionManager` enforces `used + amount <= allowance` on chain; `AutoRepayer` sizes the repayment and fixes the recipient |
+| 48 | The eval covers every failure mode a production keeper would meet. | **`NOT-CLAIMED`** | 32 scenarios is a scorecard, not a proof of coverage. |
+
+## The self-audit
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 49 | 3 High, 11 Medium, 2 Low, 1 Informational — seventeen findings, all found by us before deployment. | `REPRODUCIBLE` | [`contracts/audit/AUDIT.md`](contracts/audit/AUDIT.md), findings table |
+| 50 | Fourteen are fixed in code, one is mitigated with the residual written down, three behaviours are accepted by design and documented in the contracts. | `REPRODUCIBLE` | The `Status:` line under each finding; the Remediation section |
+| 51 | Every finding rated Medium or above has a runnable Foundry PoC driving the real contracts. | `REPRODUCIBLE` | `FOUNDRY_TEST=audit/poc forge test` → 43 passed |
+| 52 | Fifteen attacks were tried and did not work, each with its own passing refutation test. | `REPRODUCIBLE` | "Attacks I tried that did NOT work", 15 numbered items |
+| 53 | A second adversarial pass over the fixes found six further problems (all fixed) and recorded two residuals. | `REPRODUCIBLE` | "A second pass over the fixes themselves" |
+| 54 | Some worked examples in the audit quote parameters that changed before deploy. | `REPRODUCIBLE` | e.g. the audit's "100 bps + 10 bps/h capped 1000" vs the deployed 25 + 15 capped 500. [MOCKS, project-level caveats](MOCKS.md) |
+| 55 | This is a third-party audit, or equivalent to one. | **`NOT-CLAIMED`** | It is a self-audit. It is adversarial, it is evidenced, and it is not independent. |
+
+## The protocol's own costs
+
+Stated as claims because they are, and because a reviewer should be able to check them.
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 56 | Roughly **19% of every week** the protocol has no working oracle at all: all 5.5 h of PRE every weekday, plus 4 h of Monday overnight. `draw`, `withdrawCollateral`, `flag`, `cure` and `liquidate` revert for every user of every asset. | `REPRODUCIBLE` | Audit A-17 and `audit/poc/StaleWindows.t.sol` (3/3): PRE half-hour slots 04:00–09:00, 11 of 11 `UNTRUSTED_STALE` |
+| 57 | That freeze cannot cause a loss: `repay`, `supplyCollateral` and vault `deposit` read no oracle. | `REPRODUCIBLE` | Audit A-17 status; `audit/poc/BasketVeto.t.sol::test_03_TheVetoDoesNotTrapTheBorrower` |
+| 58 | The trading calendar covers days 20444–21183 (2025-12-22 to 2027-12-31) and fails closed outside that window; it cannot be extended in place. | `REPRODUCIBLE` | `SEEDED_FROM_DAY()` / `SEEDED_UNTIL_DAY()` on chain; audit A-06 |
+| 59 | The owner is a single un-timelocked EOA that can repoint any oracle, rate model, compliance gate or swap venue. | `REPRODUCIBLE` | `cast call <credit> "owner()(address)"` → `0x0AF7aFC7…C5c8f`; audit, "What was not fixed" |
+| 60 | Two of the six listed Aerodrome pools held under $70k of USDC in the Sunday snapshot (AMZNc ~$55k, TSLAc ~$67k). | `REPRODUCIBLE` | [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json) |
+
+---
+
+## The explicit NOT-CLAIMED list
+
+Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be missed.
+
+1. **No Basescan verification.** No API key. Sourcify (all 17, exact match) and Blockscout (the ten
+   top-level contracts) are what we have.
+2. **The seven oracles are not verified on Blockscout.** Its verifier needs creation bytecode, which it
+   never indexed for a `CREATE2` deploy from inside the factory. Sourcify's runtime `exact_match`
+   covers all seven.
+3. **The Morpho Blue market has no liquidity.** Created and empty.
+4. **The demo account is not Coinbase-verified.** Our own registry attested it, and the chain says so.
+5. **This is not legal Reg-S compliance**, not legal advice, and not a licence to distribute
+   securities. Liquidators are deliberately ungated.
+6. **No third-party audit.** The audit in this repository is ours.
+7. **No formal verification**, no fuzzing campaign beyond the suite in this repo, no bug bounty.
+8. **The 11,557 → 6,921 weekend contraction is modeled**, on the fork fixture's parameters rather than
+   the deployed ones.
+9. **We have never seen a real B20 corporate action.** `sweepYield` has never fired on mainnet, the
+   feed's post-split unit convention is unknown (audit A-03 branch B), and the multiplier is still
+   exactly `1e18` on every listed asset.
+10. **`AerodromeSwapAdapter` has not been exercised by a mainnet transaction.** The demo's swaps went
+    through Aerodrome's own router, as user actions.
+11. **No hosted deployment URL.** The app runs from source.
+12. **No claim about the security of Coinbase's B20 tokens, Chainlink's feeds, Aerodrome's pools,
+    Morpho Blue or the EAS predeploy.** We read them; we did not audit them.
+13. **No audience, revenue, TVL, user or partnership claim of any kind.** The only user of this
+    protocol is the deployer's demo wallet.
+14. **The specific divergence, debt and seizure-threshold figures are not stable.** They move with the
+    pool and the clock. Pin a block.
+15. **A passing test suite is not an absence of bugs**, and 32 eval scenarios are not proof of keeper
+    coverage.
