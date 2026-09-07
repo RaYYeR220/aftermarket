@@ -4,7 +4,7 @@ The off-chain keeper for **Aftermarket**'s `AutoRepayer` — the agent layer of 
 credit against Coinbase's tokenized US stocks on Base.
 
 Its job is not to be clever. `AutoRepayer` is deployed and frozen on Base mainnet at
-[`0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A`](https://basescan.org/address/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A),
+[`0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404`](https://basescan.org/address/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404),
 and every one of its refusals is enforced by the contract rather than promised by whoever runs this
 process. **The keeper has no power the contract does not already grant it.** What it adds is
 legibility: it evaluates the same eight preconditions in the same order, writes down what it saw and

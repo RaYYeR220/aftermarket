@@ -15,16 +15,16 @@ import type { ListedTicker } from "./site";
 export const DEPLOYMENT = {
   chainId: 8453,
   /** Block the deployment landed at. The activity feed never looks further back than this. */
-  blockNumber: 50_987_282n,
+  blockNumber: 51_009_740n,
 
   /** The read surface. Total by construction: it answers even with every oracle refusing. */
-  lens: "0x5A18BdEB02B30b737a2464E02A2a669BF52bC049",
+  lens: "0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D",
   /** The credit engine. Collateral, draws, repayments, flags and cures. */
-  credit: "0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3",
+  credit: "0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93",
   /** The ERC-4626 lender vault that funds every draw. */
-  vault: "0x00751166Ce3fa20a4143a1F0D848978Db73bd53f",
+  vault: "0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697",
   /** The autonomous repayment agent. Spends only under a Spend Permission the borrower signed. */
-  autoRepayer: "0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A",
+  autoRepayer: "0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404",
   /** Reg-S eligibility. Reads Coinbase's onchain verification attestations. */
   regSGate: "0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C",
   /** The fallback attester set the gate consults when no Coinbase attestation exists. */

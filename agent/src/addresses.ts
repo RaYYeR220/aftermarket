@@ -10,15 +10,15 @@ import type { Address } from "viem";
  */
 export const BASE_MAINNET = {
   chainId: 8453,
-  autoRepayer: "0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A",
-  credit: "0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3",
-  lens: "0x5A18BdEB02B30b737a2464E02A2a669BF52bC049",
-  vault: "0x00751166Ce3fa20a4143a1F0D848978Db73bd53f",
+  autoRepayer: "0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404",
+  credit: "0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93",
+  lens: "0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D",
+  vault: "0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697",
   tradingCalendar: "0x9a29F81D951fE40ae3C937654bB73f0493EE0Dd9",
   spendPermissionManager: "0xf85210B21cC50302F477BA56686d2019dC9b67Ad",
   usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   /** Deployment block of the core system; the floor for any `Enrolled` event scan. */
-  deployedAtBlock: 50_987_282n,
+  deployedAtBlock: 51_009_740n,
 } as const satisfies {
   chainId: number;
   autoRepayer: Address;
