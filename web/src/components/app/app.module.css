@@ -1,0 +1,1204 @@
+/* ==========================================================================
+   The application surface.
+
+   The landing page is a drawing of an object. This is the panel you operate it
+   from, and it is built from the same parts: bordered housings, a 2px
+   classification rule over every bay, measured values in Azeret, and one
+   pattern -- the hatch -- that means "no defensible mark here" and nothing
+   else. Every value below resolves to a token.
+   ========================================================================== */
+
+/* ========================================================== masthead ====== */
+
+.mast {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-ground);
+}
+
+.mastTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-base);
+  padding-block: 11px 10px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.brandName {
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 100, "wght" 640;
+  letter-spacing: var(--p-track-head);
+}
+
+.brandGlyph {
+  display: block;
+  flex: none;
+}
+
+.mastAside {
+  display: flex;
+  align-items: center;
+  gap: var(--space-snug);
+  min-width: 0;
+}
+
+/* --- screen index --------------------------------------------------------- */
+
+.nav {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
+}
+
+.navLink {
+  position: relative;
+  flex: none;
+  border-top: 2px solid transparent;
+  padding: 9px var(--space-snug) 10px;
+  color: var(--color-ink-faint);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 94, "wght" 500;
+  letter-spacing: var(--p-track-flat);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navLink:first-child {
+  padding-left: 0;
+}
+
+.navLink:hover {
+  color: var(--color-ink);
+}
+
+.navLinkActive {
+  border-top-color: var(--color-accent);
+  color: var(--color-ink);
+  font-variation-settings: "opsz" 12, "wdth" 96, "wght" 620;
+}
+
+/* ============================================================ session ===== */
+
+.strip {
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-ground-sunken);
+}
+
+.stripClosed {
+  background: var(--color-ground-inset);
+}
+
+.stripInner {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: var(--space-base);
+  padding-block: 10px 11px;
+}
+
+.stripState {
+  display: flex;
+  align-items: center;
+  gap: var(--space-snug);
+  min-width: 0;
+}
+
+.stripMark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--color-rule-hard);
+}
+
+.stripMarkOpen {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+}
+
+/* The one pattern on the site, at 22px: no defensible mark is being published here. */
+.stripMarkShut {
+  background-image: repeating-linear-gradient(
+    var(--hatch-angle),
+    transparent 0 var(--hatch-gap),
+    var(--hatch-color) var(--hatch-gap) calc(var(--hatch-gap) + var(--hatch-weight))
+  );
+}
+
+.stripName {
+  display: block;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 94, "wght" 600;
+  letter-spacing: var(--p-track-figure);
+}
+
+.stripNote {
+  display: block;
+  margin-top: 1px;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 400;
+}
+
+@media (max-width: 1080px) {
+  .stripInner {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-snug) var(--space-base);
+  }
+
+  .stripState {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 560px) {
+  .stripInner {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ============================================================= screen ===== */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-band);
+  padding-block: var(--space-wide) var(--space-section);
+}
+
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: end;
+  gap: var(--space-wide);
+  border-bottom: 1px solid var(--color-rule-strong);
+  padding-bottom: var(--space-snug);
+}
+
+.headTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-delta);
+  font-variation-settings: "opsz" 30, "wdth" 86, "wght" 640;
+  letter-spacing: var(--p-track-head);
+  line-height: var(--p-leading-tight);
+}
+
+.headLede {
+  max-width: var(--measure-lead);
+  margin: 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  line-height: var(--p-leading-body);
+}
+
+@media (max-width: 900px) {
+  .head {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: var(--space-snug);
+  }
+}
+
+/* --- a bay: the flush panel treatment ------------------------------------- */
+
+.bay {
+  border-top: 2px solid var(--color-rule-strong);
+  padding-top: var(--space-snug);
+}
+
+.bayRefused {
+  border-top-color: var(--color-ink-strong);
+}
+
+.bayHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  margin-bottom: var(--space-snug);
+}
+
+.bayTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-lead);
+  font-variation-settings: "opsz" 15, "wdth" 98, "wght" 620;
+  letter-spacing: var(--p-track-figure);
+}
+
+.bayNote {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  text-align: right;
+}
+
+.bayLede {
+  max-width: var(--measure-prose);
+  margin: 0 0 var(--space-base);
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
+
+/* One paragraph of explanation under a set of readouts. */
+.explain {
+  max-width: var(--measure-prose);
+  margin: var(--space-base) 0 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
+
+/* A second bank of readouts under the first, or a meter under a bank. */
+.stacked {
+  margin-top: var(--space-base);
+}
+
+/* --- generic measure grids ------------------------------------------------ */
+
+.readouts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-base) var(--space-wide);
+}
+
+@media (max-width: 600px) {
+  .readouts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-snug) var(--space-base);
+  }
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--space-wide);
+}
+
+.split > *,
+.splitWide > *,
+.stage > * {
+  min-width: 0;
+}
+
+.splitWide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-wide);
+}
+
+@media (max-width: 900px) {
+  .split,
+  .splitWide {
+    grid-template-columns: 1fr;
+    gap: var(--space-base);
+  }
+}
+
+/* ============================================================== meter ===== */
+
+/*
+   One instrument, used everywhere a measured value is judged against a limit:
+   divergence against its band, feed age against its budget, utilisation
+   against the kink, health against the seizure threshold. The limit is a
+   marked position on the track, not a colour change, so the reading is legible
+   before any colour is perceived.
+ */
+
+.meter {
+  display: block;
+}
+
+.meterTrack {
+  position: relative;
+  height: 10px;
+  border: 1px solid var(--color-rule-strong);
+  background: var(--color-ground);
+}
+
+.meterFill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--color-agree);
+}
+
+.meterFillOver {
+  background: var(--color-ink-strong);
+}
+
+.meterAllowed {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  background: var(--color-ink);
+}
+
+.meterZone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-right: 1px solid var(--color-rule-hard);
+  background: var(--color-ground-inset);
+}
+
+.meterScale {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-tight);
+  margin-top: 5px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 400;
+}
+
+.meterScale b {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.meterOverflow {
+  position: absolute;
+  top: -2px;
+  right: -1px;
+  bottom: -2px;
+  width: 7px;
+  background: var(--color-ink-strong);
+}
+
+/* ======================================================== source pair ===== */
+
+/*
+   Two price sources, always labelled by name and always carrying their value in
+   ink -- identity is never left to colour alone. The pool mark takes the
+   cerulean the design system reserves for the second source; it is a light
+   step, so its marker carries a solid edge in the feed's own blue rather than
+   relying on the fill to be visible.
+ */
+
+.sources {
+  display: grid;
+  gap: 7px;
+}
+
+.source {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--space-tight);
+}
+
+.sourceMark {
+  width: 10px;
+  height: 10px;
+  align-self: center;
+  border: 1px solid var(--color-agree);
+}
+
+.sourceMarkFeed {
+  background: var(--color-agree);
+}
+
+.sourceMarkPool {
+  background: var(--color-edge-lit);
+}
+
+.sourceName {
+  color: var(--color-ink-quiet);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 480;
+}
+
+.sourceValue {
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-figure);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--p-track-figure);
+}
+
+.sourceAside {
+  grid-column: 2 / -1;
+  margin-top: -3px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 300;
+}
+
+/* ============================================================ refusal ===== */
+
+/*
+   A refusal is a designed state, not an error toast. The hatch is the ground it
+   sits on -- the site's one pattern, meaning exactly this -- and the record on
+   top of it names the rule, what was measured, what was allowed, and when a
+   defensible number is next expected.
+ */
+
+.refusal {
+  border: 1px solid var(--color-ink-strong);
+  background-image: repeating-linear-gradient(
+    var(--hatch-angle),
+    transparent 0 var(--hatch-gap),
+    var(--hatch-color) var(--hatch-gap) calc(var(--hatch-gap) + var(--hatch-weight))
+  );
+  padding: var(--space-snug);
+}
+
+.refusalCard {
+  background: var(--color-ground);
+  padding: var(--space-snug) var(--space-base) var(--space-base);
+}
+
+.refusalHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  border-bottom: 1px solid var(--color-rule-strong);
+  padding-bottom: 7px;
+}
+
+.refusalWord {
+  color: var(--color-ink);
+  font-size: var(--text-lead);
+  font-variation-settings: "opsz" 15, "wdth" 92, "wght" 620;
+  letter-spacing: var(--p-track-figure);
+}
+
+.refusalSignature {
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+
+.refusalRule {
+  max-width: var(--measure-prose);
+  margin: var(--space-snug) 0 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
+
+.refusalFigures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+  gap: var(--space-snug) var(--space-base);
+  margin-top: var(--space-snug);
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-snug);
+}
+
+/* --- decoded revert arguments --------------------------------------------- */
+
+.args {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: var(--space-snug) 0 0;
+}
+
+.arg {
+  display: inline-flex;
+  gap: 6px;
+  border: 1px solid var(--color-rule-hard);
+  background: var(--color-ground);
+  padding: 3px 7px;
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 400;
+}
+
+.argKey {
+  color: var(--color-ink-faint);
+}
+
+.argValue {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* ============================================================== table ===== */
+
+.ledger {
+  display: grid;
+  gap: 0;
+}
+
+.ledgerRow {
+  display: grid;
+  align-items: baseline;
+  gap: var(--space-tight) var(--space-base);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: 9px;
+}
+
+.ledgerHead {
+  border-bottom: 1px solid var(--color-rule-hard);
+  padding-bottom: 5px;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  font-variation-settings: "opsz" 12, "wdth" 88, "wght" 520;
+}
+
+/*
+   A row of a table carries its column names in the header. Below the width where the columns
+   survive, the header goes and each cell carries its own name instead -- so a value on a phone is
+   never a number with nothing saying what it measures.
+ */
+.cell {
+  min-width: 0;
+}
+
+.cellKey {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .ledgerHead {
+    display: none;
+  }
+
+  .cellKey {
+    display: block;
+    margin-bottom: 1px;
+    color: var(--color-ink-faint);
+    font-size: var(--text-fine);
+    font-variation-settings: "opsz" 11, "wdth" 88, "wght" 500;
+  }
+}
+
+.num {
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-figure);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--p-track-figure);
+}
+
+.numQuiet {
+  color: var(--color-ink-faint);
+}
+
+.mono {
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+}
+
+/* --- an address, always a link -------------------------------------------- */
+
+.address {
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-rule-hard);
+}
+
+.address:hover {
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
+}
+
+/* =========================================================== notices ====== */
+
+.notice {
+  border: 1px solid var(--color-rule-strong);
+  background: var(--color-ground-sunken);
+  padding: var(--space-snug) var(--space-base);
+}
+
+.noticeStrong {
+  border-color: var(--color-ink-strong);
+  background: var(--color-ground);
+}
+
+.noticeTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 94, "wght" 600;
+}
+
+.noticeBody {
+  max-width: var(--measure-prose);
+  margin: 5px 0 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
+
+.noticeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-snug);
+  margin-top: var(--space-snug);
+}
+
+/* --- read-only mode ------------------------------------------------------- */
+
+.demo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-tight) var(--space-base);
+  border: 1px solid var(--color-rule-hard);
+  background: var(--color-ground-sunken);
+  padding: 9px var(--space-snug) 10px;
+}
+
+.demoText {
+  max-width: var(--measure-prose);
+  margin: 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-caption);
+  line-height: var(--p-leading-body);
+}
+
+.demoText b {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* ============================================================= ladder ===== */
+
+/*
+   Six sessions, one measure each. A single-series magnitude comparison, so no
+   legend and no colour coding: the bar is one hue, the current session is
+   marked structurally, and every bar carries its own value as a label.
+ */
+
+.ladder {
+  display: grid;
+  gap: 0;
+}
+
+.ladderRow {
+  display: grid;
+  grid-template-columns: minmax(96px, 0.7fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: var(--space-snug) var(--space-base);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: 7px;
+}
+
+.ladderRowCurrent {
+  border-left: 2px solid var(--color-accent);
+  margin-left: -2px;
+  padding-left: var(--space-snug);
+}
+
+.ladderName {
+  color: var(--color-ink-quiet);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 480;
+}
+
+.ladderRowCurrent .ladderName {
+  color: var(--color-ink);
+  font-variation-settings: "opsz" 12, "wdth" 92, "wght" 620;
+}
+
+.ladderBarTrack {
+  position: relative;
+  height: 9px;
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.ladderBar {
+  position: absolute;
+  top: 0;
+  bottom: 1px;
+  left: 0;
+  background: var(--color-structure);
+}
+
+.ladderRowCurrent .ladderBar {
+  background: var(--color-accent);
+}
+
+.ladderCaption {
+  max-width: var(--measure-prose);
+  margin: 9px 0 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  line-height: var(--p-leading-body);
+}
+
+.ladderValue {
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-figure);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ============================================================== forms ===== */
+
+.form {
+  display: grid;
+  gap: var(--space-snug);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--space-snug);
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-tight);
+}
+
+.select {
+  width: 100%;
+  border: 1px solid var(--field-border-color);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  padding: 10px 12px;
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-body);
+}
+
+.select:focus-visible {
+  border-color: var(--field-border-color-focus);
+}
+
+.selectLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--field-label-color);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 92, "wght" 500;
+}
+
+.quickPicks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.quickPick {
+  border: 1px solid var(--color-rule-hard);
+  border-radius: var(--radius-chip);
+  background: var(--color-ground);
+  padding: 3px 8px;
+  color: var(--color-ink-quiet);
+  cursor: pointer;
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+}
+
+.quickPick:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.status {
+  margin: 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-caption);
+  line-height: var(--p-leading-body);
+}
+
+.statusError {
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================== stage ===== */
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: var(--space-wide);
+}
+
+@media (max-width: 1080px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stageFigure {
+  min-width: 0;
+}
+
+.stageFigure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* ========================================================== asset bay ===== */
+
+/*
+   One listed asset, read across in four columns: what it is, what the two
+   sources say, how far apart they are against the band, and what the protocol
+   will therefore do about it. A refused asset carries a fifth full-width row
+   under those four, so a refusal is never a red word in a cell.
+ */
+
+.assetGrid {
+  display: grid;
+  grid-template-columns:
+    minmax(130px, 0.85fr)
+    minmax(170px, 1.05fr)
+    minmax(190px, 1.25fr)
+    minmax(190px, 1.15fr);
+  gap: var(--space-base) var(--space-wide);
+}
+
+.assetIdentity {
+  min-width: 0;
+}
+
+.assetUnderlying {
+  display: block;
+  color: var(--color-ink);
+  font-size: var(--text-subhead);
+  font-variation-settings: "opsz" 20, "wdth" 90, "wght" 620;
+  letter-spacing: var(--p-track-head);
+  line-height: 1.1;
+}
+
+.assetTicker {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+}
+
+.assetMeta {
+  display: grid;
+  gap: 3px;
+  margin-top: var(--space-tight);
+}
+
+.assetInstruments {
+  display: grid;
+  gap: var(--space-snug);
+}
+
+.assetPolicy {
+  display: grid;
+  gap: var(--space-snug);
+  align-content: start;
+}
+
+.assetPolicyRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-snug);
+}
+
+.assetRefusal {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 1080px) {
+  .assetGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .assetGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-snug);
+  }
+}
+
+/* ========================================================== instrument === */
+
+/*
+   The oracle screen's diptych. Two identical panels, differing in one deployed
+   parameter, so the eye can only land on the difference.
+ */
+
+.diptych {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-base);
+}
+
+@media (max-width: 900px) {
+  .diptych {
+    grid-template-columns: 1fr;
+  }
+}
+
+.instrument {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-snug);
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-housing);
+  background: var(--color-ground);
+  padding: var(--space-snug) var(--space-base) var(--space-base);
+}
+
+.instrumentControl {
+  border-color: var(--color-ink-strong);
+  background: var(--color-ground-sunken);
+}
+
+.instrumentHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  border-bottom: 1px solid var(--color-rule);
+  padding-bottom: 7px;
+}
+
+.instrumentName {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 96, "wght" 620;
+}
+
+.instrumentAnswer {
+  border: 1px solid var(--color-rule-hard);
+  background: var(--color-ground-sunken);
+  padding: var(--space-snug) var(--space-base);
+}
+
+.instrumentAnswerRefused {
+  border-color: var(--color-ink-strong);
+  background-image: repeating-linear-gradient(
+    var(--hatch-angle),
+    transparent 0 var(--hatch-gap),
+    var(--hatch-color) var(--hatch-gap) calc(var(--hatch-gap) + var(--hatch-weight))
+  );
+}
+
+.instrumentAnswerInner {
+  background: var(--color-ground);
+  padding: var(--space-tight) var(--space-snug);
+}
+
+.instrumentCall {
+  display: block;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 400;
+}
+
+.instrumentResult {
+  display: block;
+  margin-top: 3px;
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-readout);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--p-track-figure);
+  overflow-wrap: anywhere;
+}
+
+.instrumentSentence {
+  max-width: var(--measure-prose);
+  margin: 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
+
+.instrumentFacts {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-tight);
+}
+
+.instrumentFacts dd {
+  margin: 0;
+}
+
+.factRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 400;
+}
+
+.factKey {
+  color: var(--color-ink-faint);
+}
+
+.factValue {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ========================================================== activity ===== */
+
+.feedRow {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1.6fr) minmax(0, 1.2fr) 110px;
+  align-items: baseline;
+  gap: var(--space-tight) var(--space-base);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: 10px;
+}
+
+.feedRowRefusal {
+  border-left: 2px solid var(--color-ink-strong);
+  margin-left: -2px;
+  padding-left: var(--space-snug);
+  background-image: repeating-linear-gradient(
+    var(--hatch-angle),
+    transparent 0 var(--hatch-gap),
+    var(--hatch-color) var(--hatch-gap) calc(var(--hatch-gap) + var(--hatch-weight))
+  );
+  background-size: 100% 2px;
+  background-repeat: no-repeat;
+  background-position: bottom;
+}
+
+.feedHeadline {
+  color: var(--color-ink);
+  font-size: var(--text-figure);
+  font-variation-settings: "opsz" 13, "wdth" 94, "wght" 560;
+}
+
+.feedEvent {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 400;
+}
+
+.feedDetail {
+  color: var(--color-ink-quiet);
+  font-size: var(--text-caption);
+  line-height: var(--p-leading-body);
+}
+
+@media (max-width: 900px) {
+  .feedRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .feedDetail {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ============================================================ basket ===== */
+
+.basketRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.2fr);
+  align-items: baseline;
+  gap: var(--space-tight) var(--space-base);
+  border-bottom: 1px solid var(--color-rule);
+  padding-block: 10px;
+}
+
+@media (max-width: 900px) {
+  .basketRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* ============================================================ preview ==== */
+
+/*
+   The borrow screen's live limit. It updates as the amount changes, and when
+   the engine would reject the action it becomes the refusal itself rather than
+   putting a message beside a number that is no longer true.
+ */
+
+.preview {
+  border: 1px solid var(--color-rule-hard);
+  background: var(--color-ground-sunken);
+  padding: var(--space-snug) var(--space-base) var(--space-base);
+}
+
+.previewRefused {
+  border-color: var(--color-ink-strong);
+  background: var(--color-ground);
+}
+
+.previewHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  border-bottom: 1px solid var(--color-rule);
+  padding-bottom: 7px;
+  margin-bottom: var(--space-snug);
+}
+
+.previewVerdict {
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 94, "wght" 620;
+}
+
+.previewFigures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(120px, 100%), 1fr));
+  gap: var(--space-snug) var(--space-base);
+}
+
+.previewReason {
+  max-width: var(--measure-prose);
+  margin: var(--space-snug) 0 0;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-figure);
+  line-height: var(--p-leading-body);
+}
