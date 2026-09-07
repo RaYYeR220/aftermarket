@@ -33,13 +33,49 @@ feeds said versus what the market said:
 | AAPLc | $320.08 | $320.70 | 19 bps | 54.3 h |
 | GOOGLc | $338.71 | $338.56 | 4 bps | 59.9 h |
 
-Snapshot: [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json). Regenerate
-the live version with `pnpm verify:onchain`.
+Snapshot: [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json).
 
 Five of the ten priced markets were more than 150 bps away from the number a Chainlink-only lender
 would have marked them at, and one of them was **9.1% away**. The feeds were not broken. They were
 doing exactly what they are specified to do: a total-return reference feed for a US equity tracks the
 US equity market, and the US equity market was closed. The token, meanwhile, kept trading.
+
+### That table is pinned to one block, and yours will not match it
+
+```bash
+pnpm verify:onchain      # the same thirteen reads, against Base right now
+```
+
+Run it. You should get smaller numbers than the ones above, and if you run it during a regular
+session you should get much smaller ones. That is the mechanism, not a retraction.
+
+The pinned block is Sunday night: 54 hours into a three-day weekend, 39 hours before the next
+Chainlink print — a closed market near the worst it gets. The gap is a live quantity that resets
+every Friday at 16:00 ET and collapses every Monday at 09:30, so a single reading is a point on a
+distribution rather than a constant. Here is our own re-read 23 hours later, same command, no
+arguments, on Labor Day evening
+([`docs/evidence/holiday-2026-09-07.json`](docs/evidence/holiday-2026-09-07.json)):
+
+| asset | Sun 22:17 ET · block 50,979,049 | Mon 17:02 ET · block 51,012,807 |
+|---|---:|---:|
+| **AMZNc** | 912 bps | 197 bps |
+| **MSFTc** | 479 bps | 106 bps |
+| **SNDKc** | 221 bps | **312 bps** |
+| **SPCXc** | 154 bps | 145 bps |
+| **MSTRc** | 153 bps | 98 bps |
+| NVDAc | 62 bps | 92 bps |
+| TSLAc | 62 bps | 77 bps |
+
+Two of ten over 150 bps rather than five — and note that it is not a one-way convergence: AMZNc came
+in by 715 bps while **SNDKc widened by 91**. That is the whole argument in one table. The divergence
+is the pool's live opinion of an asset whose reference has stopped moving, so it wanders in both
+directions and nobody knows today which way tomorrow's goes. What does not wander is the structural
+fact underneath: for 135.5 hours of every week there are two prices for the same asset and only one
+of them is being updated.
+
+A lending protocol does not need the gap to be 9.1%. It needs the gap to be **unknowable in
+advance** — which is exactly why this oracle publishes a verdict rather than a number, and why it
+refuses on a band rather than on a level.
 
 That gap is not an edge case. The NYSE is open **32.5 hours a week**. For the other 135.5 hours the
 tokens trade and the reference does not move at all — `updatedAt` is frozen at the last close, so the
@@ -101,31 +137,40 @@ liquidated by, not easier.
 
 ---
 
-## What that looks like right now, on mainnet
+## What that looks like on mainnet
 
 Monday 2026-09-07 is Labor Day. The market closed Friday at 16:00 ET and does not reopen until
-Tuesday 09:30 ET — **89 h 30 m between two real prints**. Three read-only calls, no wallet:
+Tuesday 09:30 ET — **89 h 30 m between two real prints**. Three read-only calls, no wallet, pinned to
+block **50,997,343** so they print these bytes today and in a year:
 
 ```bash
 export RPC=https://mainnet.base.org
+export AT="--rpc-url $RPC --block 50997343"
 
 # 1. NVDAc: sources agree (105 bps inside a 300 bps band) -> it answers, haircut and all
-cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" --rpc-url $RPC
+cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" $AT
 # 2184594350000000000000000000000000000   ($218.46, from a $229.96 anchor, 500 bps gap haircut)
 
-# 2. AMZNc: sources disagree by 898 bps against a 300 bps band -> it refuses
-cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" --rpc-url $RPC
-# execution reverted: SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence=898, band=300)
+# 2. AMZNc: sources disagree by 897 bps against a 300 bps band -> it refuses
+cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" $AT
+# execution reverted: SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence=897, band=300)
 
 # 3. Negative control: the same NVDAc, one constructor number different (band 25 bps) -> it refuses
-cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" --rpc-url $RPC
-# execution reverted: SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence=106, band=25)
+cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" $AT
+# execution reverted: SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence=105, band=25)
 ```
 
 The third one matters most. `0x82eAc15…dd58` is an `AftermarketOracle` deployed against the **same**
 NVDAc token, the **same** Chainlink feed, the **same** Aerodrome pool, the **same** calendar, at the
 **same** block — differing only in the divergence band. It refuses where production answers. It is a
 green check that could have been red, and it is on chain so you can check that it is.
+
+**Now drop the `--block` and run them again.** The divergences are live, so what you get back depends
+on when you ask, and that is the product rather than a caveat. By Labor Day evening AMZNc's gap had
+closed from 897 bps to 197 and call 2 **answers** — the oracle stopped refusing because the thing it
+was refusing over went away. The negative control at 25 bps still refuses, and will keep refusing
+through almost any market, which is what a control is for. A fixture would give you the same answer
+every time; this does not.
 
 ### The headline: an unmarkable asset is worth exactly zero borrowing power
 
@@ -260,37 +305,70 @@ Verification record and how to re-run it: [`docs/verification.md`](docs/verifica
 
 ---
 
-## Run it
+## Getting started
 
-Requirements: Node ≥ 20.9, pnpm 9, [Foundry](https://book.getfoundry.sh/getting-started/installation),
-and — for the fork tests only — [`base-forge`](https://github.com/base/base-anvil), because B20 tokens
-are Rust precompiles rather than EVM contracts and stock `forge` halts with `OpcodeNotFound` on the
-first `decimals()` call.
+From nothing, on a machine with **git**, **Node ≥ 20.9** and **pnpm 9** (`corepack enable`). Foundry
+is needed only for the Solidity.
 
 ```bash
-pnpm install
-cp .env.example .env          # defaults work; a private archive RPC is faster and rate-limit free
+git clone https://github.com/RaYYeR220/aftermarket.git
+cd aftermarket
+git submodule update --init --recursive     # ~1 min, ~55 MB. Required for anything Foundry.
+```
+
+**Do not skip the submodule line if you intend to run `forge`.** `contracts/lib/` holds one vendored
+dependency (`forge-std`, committed) and five submodules; without them every `forge` command dies in a
+wall of `ParserError: Source "lib/openzeppelin-contracts/…" not found` about a minute in.
+`lib/verifications` carries nested submodules of its own, which is what the `--recursive` is for.
+Cloning with `git clone --recurse-submodules` does the same thing in one step.
+
+> `lib/spend-permissions` is marked `update = none` in `.gitmodules` and is skipped. It is
+> provenance only — the upstream source the `SpendPermission` struct was retyped from, kept so the
+> two can be diffed — and its own test dependencies nest deep enough to break the Windows
+> 260-character path limit, which used to abort the whole init before it reached `lib/verifications`.
+> Fetch it explicitly with
+> `git submodule update --init --checkout contracts/lib/spend-permissions` if you want to diff it,
+> and set `git config --global core.longpaths true` first.
+
+Then, one command, no key and no wallet:
+
+```bash
 pnpm verify:onchain           # the live evidence table above, regenerated from Base right now
 ```
 
-That one command needs no key, no wallet and no deploy. It reads Base mainnet and prints the current
-feed-vs-pool divergence for every listed tokenized stock. If the number in the table at the top of
-this README has moved since we wrote it, this is how you find out.
+It installs and builds what it needs on first run — you do not have to `pnpm install` first — and
+after that it starts reading immediately. It reads Base mainnet and prints the current feed-vs-pool
+divergence for every listed tokenized stock. If the numbers in the table at the top of this README
+have moved since we wrote it, this is how you find out.
 
 > It makes about eighty calls. On the public `https://mainnet.base.org` endpoint that can trip the
 > rate limiter, in which case the table fills with `unavailable` and `NO-POOL` — that is the RPC
-> refusing, not the chain. Set `BASE_RPC_URL` to your own endpoint, or narrow it with
-> `node scripts/verify-onchain.mjs --asset NVDAc`.
+> refusing, not the chain. Set `BASE_RPC_URL` to your own endpoint (`cp .env.example .env`), or
+> narrow it with `pnpm verify:onchain --asset NVDAc`.
 
-Everything else:
+### Everything else
 
 ```bash
+pnpm install                                   # the whole workspace, if you want the app or the tests
 pnpm build                                     # all workspace packages
-cd contracts && forge test --no-match-path 'test/fork/*'      # 273 passed, 0 failed, 1 skipped
-cd contracts && FOUNDRY_TEST=audit/poc forge test             #  43 passed, 0 failed
-cd contracts && BASE_RPC_URL=… base-forge test --match-path 'test/fork/*'   # 8 passed, 0 failed
+pnpm -r typecheck                              # every package
 cd web && pnpm dev                             # the app, on http://localhost:3000
 ```
+
+The contracts, once the submodules are in:
+
+```bash
+cd contracts
+forge test --no-match-path 'test/fork/*'       # 273 passed, 0 failed, 1 skipped
+FOUNDRY_TEST=audit/poc forge test              #  43 passed, 0 failed — every audit finding, as a PoC
+FOUNDRY_TEST=audit/refute forge test           #  39 passed, 0 failed — the attacks that did not work
+forge fmt --check                              # clean
+BASE_RPC_URL=… base-forge test --match-path 'test/fork/*'   # 8 passed, 0 failed
+```
+
+The fork suite needs [`base-forge`](https://github.com/base/base-anvil) rather than stock `forge`,
+because B20 tokens are Rust precompiles rather than EVM contracts and stock `forge` halts with
+`OpcodeNotFound` on the first `decimals()` call. It also needs an **archive** endpoint.
 
 ### Environment
 
@@ -302,9 +380,29 @@ cd web && pnpm dev                             # the app, on http://localhost:30
 | `BASESCAN_API_KEY` | nothing | — | present in `foundry.toml` for completeness; **all published verification was done key-less** via Sourcify and Blockscout |
 | `NEXT_PUBLIC_SITE_URL` | web app | `http://localhost:3000` | drives OG tags, manifest, SIWE domain check |
 | `NEXT_PUBLIC_BASE_RPC_URL` | web app | `/api/rpc` | where the browser sends its Base reads; unset, they go through the app's own read proxy, which forwards an allowlist of read methods to `BASE_RPC_URL` and keeps any key out of the client bundle |
-| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev; unset means transactions go out unattributed |
+| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev. A plain lowercase ASCII string of 1-32 characters (`a-z`, `0-9`, `_`) — **not** hex, e.g. `bc_b7k3p9da`. Unset means transactions go out unattributed, which is what it currently is |
 | `SESSION_SECRET` | web app | random per process | signs the session cookie |
 | `KEEPER_ACCOUNTS`, `--account` | keeper | — | pins accounts for the `AutoRepayer` keeper in addition to event discovery |
+
+### Attribution (ERC-8021 Builder Codes)
+
+The wiring is shipped and the value is empty, so say it plainly: **every transaction this app has
+sent went out unattributed.** `web/src/lib/builder-code.ts` encodes a Builder Code as an ERC-8021
+calldata suffix and sets it once on the wagmi config, so every `useSendTransaction` and
+`useSendCalls` in the app carries it without the call site having to remember — but
+`NEXT_PUBLIC_BUILDER_CODE` is unset and the encoder returns `undefined`.
+
+It is unset because a Builder Code cannot be derived or self-minted. It is not a hash of a domain or
+an address; it is an arbitrary lowercase string (`bc_b7k3p9da`, `morpho`) claimed first-come in
+Base's own ERC-721 code registry, whose `register()` and `registerWithSignature()` both require
+`REGISTER_ROLE`. base.dev is the registrar, and getting one means signing in there with a wallet:
+free, about two minutes, and not something a repository can do for you. Setting a code we had not
+registered would produce a structurally valid suffix that resolves to nobody, which is worse than
+an empty one, so the field stays empty until a real code goes in it.
+
+To attribute this deployment: claim a code under **Settings → Builder Code** at
+<https://base.dev>, then set `NEXT_PUBLIC_BUILDER_CODE` in `web/.env.local` and in the Vercel
+project. Nothing else changes — no redeploy of a contract, no code edit.
 
 ---
 
@@ -404,7 +502,9 @@ contracts/            Foundry project — src, tests, deploy scripts, self-audit
   src/                the ten contracts above
   test/               unit + invariant suite (273 tests)
   test/fork/          live-mainnet and historical-replay suites (base-forge)
-  audit/              AUDIT.md and the runnable PoC for every finding
+  audit/poc/          AUDIT.md's runnable PoC for every finding (43 tests)
+  audit/refute/       the attacks that did not work (39 tests)
+  lib/                forge-std, committed; four submodules, one skipped by default
   deployments/8453.json   addresses, constructor args, deploy block
 web/                  Next.js 16 app — markets, line, borrow, earn, oracle, auto-repay, activity
 agent/                the AutoRepayer keeper (no LLM in the decision path) + its 32-scenario eval

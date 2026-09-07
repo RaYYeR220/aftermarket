@@ -8,6 +8,25 @@ last two steps is a read-only call against Base mainnet — no wallet, no key, n
 export RPC=https://mainnet.base.org
 ```
 
+## Before anything that needs the repository
+
+Steps 1-4 need nothing but `cast` and a browser. Steps 0 and 5 need a clone, and a clone needs one
+extra line, because four of the five Foundry dependencies are git submodules:
+
+```bash
+git clone https://github.com/RaYYeR220/aftermarket.git
+cd aftermarket
+git submodule update --init --recursive     # ~1 min, ~55 MB. Skip it and forge cannot compile.
+```
+
+Measured cold on Windows 11, git 2.52: clone 4 s, submodules 1 m 17 s. Without that second command
+every `forge` invocation spends about a minute compiling and then dies in a wall of
+`ParserError: Source "lib/openzeppelin-contracts/…" not found` — the tests in step 5 are real and
+they pass, but not from an uninitialised tree. `git clone --recurse-submodules` does both at once.
+
+Node ≥ 20.9 and pnpm 9 (`corepack enable`) are needed for `pnpm verify:onchain` below. You do **not**
+need to run `pnpm install` first — the command installs and builds what it needs on its first run.
+
 ---
 
 ## The video — 3 minutes, if you would rather watch than type
@@ -30,7 +49,9 @@ It is a Next.js 16 app over the same contracts — markets, credit line, borrow,
 auto-repay. **Everything below is checkable without it.** If your five minutes are tight, skip it; the
 evidence is on chain, not in the UI.
 
-One command that needs nothing but Node, and prints the live evidence this whole project is built on:
+One command that prints the live evidence this whole project is built on. It needs Node and pnpm,
+and it bootstraps itself — the first run installs the observer package and builds it, after that it
+starts reading Base immediately:
 
 ```bash
 pnpm verify:onchain
@@ -40,40 +61,52 @@ pnpm verify:onchain
 
 ## 1 · The two commands — 60 seconds
 
-This is the product. Two calls, one asset that the oracle will mark and one it will not.
+This is the product. Two calls, one asset that the oracle will mark and one it will not. **Pinned to
+block 50,997,343** (2026-09-07 12:27:13 UTC) so they print these exact bytes whenever you run them:
 
 ```bash
+export AT="--rpc-url $RPC --block 50997343"
+
 # Answers. Sources agree: 105 bps of divergence inside a 300 bps band.
-cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" --rpc-url $RPC
+cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" $AT
 # 2184594350000000000000000000000000000        -> $218.459435 per NVDAc
 
-# Refuses. Sources disagree: ~900 bps against the same 300 bps band.
-cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" --rpc-url $RPC
+# Refuses. Sources disagree: 897 bps against the same 300 bps band.
+cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" $AT
 # execution reverted, data: 0x1047f22b
 #   ...0005  session    = 5  CLOSED_HOLIDAY
-#   ...0381  divergence = 897 bps          <- moves with the pool
+#   ...0381  divergence = 897 bps
 #   ...012c  band       = 300 bps
 ```
 
 `0x1047f22b` is `SourcesDiverged(uint8,uint256,uint256)` — check with
 `cast sig "SourcesDiverged(uint8,uint256,uint256)"`.
 
-Today is Labor Day. The last real Chainlink print was Friday 16:00 ET; the next is Tuesday 09:30 ET.
-**89 h 30 m apart.** AMZNc's frozen anchor says $257.69 while the pool it actually trades in prints
-$280.88. Aftermarket's oracle will not pick a winner, so it refuses — and because Morpho Blue reads
-`price()` only in `borrow`, `withdrawCollateral` and `liquidate`, that refusal freezes new risk and
-freezes seizure while leaving repayment open.
+That block is Labor Day. The last real Chainlink print was Friday 16:00 ET; the next is Tuesday
+09:30 ET. **89 h 30 m apart.** AMZNc's frozen anchor says $257.69 while the pool it actually trades
+in prints $280.88. Aftermarket's oracle will not pick a winner, so it refuses — and because Morpho
+Blue reads `price()` only in `borrow`, `withdrawCollateral` and `liquidate`, that refusal freezes new
+risk and freezes seizure while leaving repayment open.
+
+**Drop `--block` and the second call may well answer.** It is a live measurement, not a fixture: by
+Labor Day evening AMZNc's divergence had closed from 897 bps to 197, inside the 300 bps band, and
+the oracle went back to marking it. The refusal ends when the condition ends, which is the only
+behaviour worth shipping. `pnpm verify:onchain` in step 0 prints the current gap for all thirteen.
 
 ### Now the one that makes it falsifiable — 30 seconds
 
 ```bash
-cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" --rpc-url $RPC
+cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" $AT
 # execution reverted: SourcesDiverged(session=5, divergence=105, band=25)
 ```
 
 That is an `AftermarketOracle` on the **same NVDAc**, the **same feed**, the **same pool**, the **same
 calendar**, at the **same block** as the one that answered in the first command. One constructor
 number differs: the divergence band, 25 bps instead of 300. It refuses where production answers.
+
+Run this one **without** `--block` too. It still refuses, and it will keep refusing through almost
+any market, because 25 bps is narrower than the gap between a frozen anchor and a live pool ever
+gets. That is what a control is for.
 
 A negative control that fires is the difference between "our check passed" and "our check works".
 
@@ -164,8 +197,11 @@ answer key hash 271c4b7c7cafadba04e8faf9c69daf301bb7f14a4a017e8789f50428b2fdddd4
 ```
 
 [`agent/eval/results/latest.txt`](agent/eval/results/latest.txt) — one row per scenario, three
-independent verdicts per row (expected label, keeper engine, the contract's own `simulate()`), all
-three agreeing on all 32.
+verdicts per row (the hand-written expected label, the keeper engine, and the contract's own
+`simulate()`), all three agreeing on all 32. Two of those three are implementations written by the
+same author and the third is that author's answer key, so this is differential testing rather than
+independent review; what it catches is the engine and the contract disagreeing, which is the failure
+mode that would actually hurt.
 
 Read the two columns that matter. **11/11 traps refused** — scenarios engineered to look actionable
 and be wrong. **6/6 negative controls acted** — scenarios that must act, so a keeper that always
@@ -176,7 +212,7 @@ anything.
 
 ## 5 · The self-audit — 90 seconds
 
-[`contracts/audit/AUDIT.md`](contracts/audit/AUDIT.md). 2,046 lines. **3 High, 11 Medium, 2 Low, 1
+[`contracts/audit/AUDIT.md`](contracts/audit/AUDIT.md). 2,107 lines (`wc -l`). **3 High, 11 Medium, 2 Low, 1
 Informational**, all found by us in our own code before deployment, every one with a runnable Foundry
 PoC that drives the real contracts at the real deploy parameters.
 
@@ -186,9 +222,13 @@ on the premise that a fix is just new code — it found six more problems (inclu
 through the swap adapter that could have sent swap proceeds to the borrower instead of the vault) and
 recorded two residuals rather than papering over them.
 
-It also publishes **fifteen attacks that did not work**, each with a passing refutation test —
-including three separate attempts to extract value by manipulating the shallow Aerodrome pools, all
-refuted by the `min`/`max` fusion.
+It also publishes **fifteen attacks that did not work** — including three separate attempts to
+extract value by manipulating the shallow Aerodrome pools, all refuted by the `min`/`max` fusion and
+all with a passing PoC. That section opens with a table saying, for each of the fifteen, whether it
+is refuted by a dedicated PoC (four), by the whole `audit/refute/` suite (one), by a test already in
+the repo's own suite (three), or by an argument from the code with no test of its own (seven). A
+refutation of the form "this state is unreachable" has nothing positive to assert, and it seemed
+better to say which is which than to let "each with a test" stand.
 
 If you read one finding, read **A-17** (`## A-17` in that file). It is ours, it is unfixed on purpose,
 and it costs users real money:
@@ -203,7 +243,10 @@ and it costs users real money:
 
 ```bash
 cd contracts && FOUNDRY_TEST=audit/poc forge test      # 43 passed, 0 failed
+cd contracts && FOUNDRY_TEST=audit/refute forge test   # 39 passed, 0 failed
 ```
+
+Both need the submodules from the top of this file. Cold, on this machine: 25 s and 6 s.
 
 ---
 
@@ -213,7 +256,7 @@ cd contracts && FOUNDRY_TEST=audit/poc forge test      # 43 passed, 0 failed
 |---|---|
 | +2 min | [PROOF.md](PROOF.md) — every claim as a link or a pasteable command |
 | +2 min | [MOCKS.md](MOCKS.md) — the exact real-versus-simulated line, four simulated inputs, three project caveats |
-| +2 min | [CLAIMS.md](CLAIMS.md) — 60 statements tagged `REPRODUCIBLE` / `VERIFIED-LIVE` / `MODELED` / `NOT-CLAIMED`, plus a 15-item explicit not-claimed list |
+| +2 min | [CLAIMS.md](CLAIMS.md) — 74 statements tagged `REPRODUCIBLE` / `VERIFIED-LIVE` / `MODELED` / `NOT-CLAIMED`, plus a 15-item explicit not-claimed list |
 | +3 min | [README.md](README.md) — the product, the architecture, and the honest limits |
 | +5 min | `cd contracts && forge test --no-match-path 'test/fork/*'` → 273 passed, 0 failed, 1 skipped |
 | +5 min | `BASE_RPC_URL=<archive> base-forge test --match-path 'test/fork/*'` → 8 passed, against live and historical mainnet state |
@@ -247,3 +290,14 @@ Because you will find them, and it is better that we say them first.
    fallback registry behind the gate is owner-settable and its owner is implicitly an attester, so a
    jurisdiction can be asserted by our key rather than proven by Coinbase — which is what our own demo
    account does, visibly, as `source = 2`. [CLAIMS.md](CLAIMS.md) claims 68-74.
+6. **No Builder Code, so every transaction this app has sent is unattributed.** The ERC-8021 suffix is
+   wired end to end and set once on the wagmi config; `NEXT_PUBLIC_BUILDER_CODE` is empty. A code
+   cannot be derived or self-minted — Base's registry gates `register()` behind `REGISTER_ROLE` and
+   base.dev is the registrar — so it takes a base.dev account we do not have. Putting an invented
+   string there would produce a structurally valid suffix that resolves to nobody, so the field is
+   empty rather than wrong. [README → Attribution](README.md#attribution-erc-8021-builder-codes).
+7. **The refutation suite was written mid-audit and has been re-pointed since.** Three fixes landed
+   under it — `cure` now needs an open market, a sweep is capped at 10% of the position, and the
+   multiplier checkpoint is a high-water mark — and each one makes an attack it probed strictly
+   harder. The tests now assert what the shipped contract does, and
+   `contracts/audit/refute/RefuteBase.sol` says so at the top rather than quietly.
