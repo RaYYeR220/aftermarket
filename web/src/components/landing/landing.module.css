@@ -1,0 +1,656 @@
+/* ---------------------------------------------------------------- masthead */
+
+.mast {
+  border-bottom: 1px solid var(--color-rule);
+}
+
+.mastInner {
+  display: flex;
+  height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-wide);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.brandGlyph {
+  display: block;
+  flex: none;
+}
+
+.brandName {
+  font-size: 19px;
+  font-variation-settings: "opsz" 22, "wdth" 100, "wght" 760;
+  letter-spacing: -0.033em;
+  line-height: 1;
+}
+
+.nav {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-base);
+}
+
+.nav a {
+  border-bottom: 1px solid transparent;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 92, "wght" 460;
+  padding: 4px 0;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  border-bottom-color: var(--color-rule-hard);
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------- status line */
+
+.status {
+  border-bottom: 1px solid var(--color-rule);
+  background: var(--color-ground-sunken);
+}
+
+.statusInner {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink-quiet);
+  font-family: var(--ff-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+  letter-spacing: var(--p-track-flat);
+}
+
+/* The one pill on the page, and the only one that earns the shape. */
+.dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--radius-dot);
+  background: var(--color-accent);
+}
+
+.dotClosed {
+  background: var(--color-ink-ghost);
+}
+
+.statusInner b {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+/* ------------------------------------------------------------------- claim */
+
+.record {
+  margin: 0 0 var(--space-snug);
+}
+
+.claim {
+  margin: 0 0 var(--space-base);
+  font-size: var(--text-claim);
+  font-variation-settings: "opsz" 43, "wdth" 100, "wght" 620;
+  letter-spacing: var(--p-track-display);
+  line-height: var(--p-leading-tight);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0 0 var(--space-wide);
+  max-width: var(--measure-lead);
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 96, "wght" 400;
+  line-height: var(--p-leading-body);
+}
+
+.provenance {
+  margin: var(--space-base) 0 0;
+  max-width: var(--measure-fine);
+  border-top: 1px solid var(--color-rule);
+  padding-top: var(--space-snug);
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 300;
+  line-height: var(--p-leading-loose);
+}
+
+.provenance b {
+  color: var(--color-ink-strong);
+  font-weight: 500;
+}
+
+.heroFallback {
+  max-width: var(--measure-lead);
+  padding-block: var(--space-wide) var(--space-band);
+}
+
+/* ------------------------------------------------------------------ bands */
+
+.band {
+  border-top: 1px solid var(--color-rule);
+  padding: var(--space-band) 0 var(--space-section);
+}
+
+/* The last band before the footer closes on the widest step in the scale. */
+.band:last-of-type {
+  padding-bottom: var(--space-chapter);
+}
+
+.bandTop {
+  display: grid;
+  grid-template-columns: minmax(220px, 330px) 1fr;
+  align-items: start;
+  gap: var(--space-band);
+}
+
+/* Grid items default to a min-width of auto, which lets a wide child -- a code
+   block, a table -- push the page wider than the viewport instead of scrolling
+   inside its own container. Every grid on this page opts out of that. */
+.bandTop > *,
+.mechanism > *,
+.integrator > * {
+  min-width: 0;
+}
+
+.band h2 {
+  margin: 0 0 6px;
+  font-size: var(--text-head);
+  font-variation-settings: "opsz" 24, "wdth" 100, "wght" 600;
+  letter-spacing: var(--p-track-head);
+  line-height: 1.12;
+}
+
+.band p {
+  margin: 0;
+  max-width: var(--measure-prose);
+  color: var(--color-ink-quiet);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.band p + p {
+  margin-top: var(--space-snug);
+}
+
+.delta {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-delta);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.deltaFrom {
+  color: var(--color-ink-faint);
+  text-decoration: none;
+}
+
+.deltaTo {
+  color: var(--color-accent);
+  font-style: normal;
+  font-weight: 500;
+}
+
+.band code {
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: 0.9em;
+  font-weight: 400;
+}
+
+.note {
+  margin: 6px 0 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 450;
+}
+
+/* -------------------------------------------------------------------- bays */
+
+.bays {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--space-base);
+  margin: var(--space-band) 0 0;
+  padding: 0;
+}
+
+.bay {
+  border-top: 2px solid var(--color-agree);
+  padding-top: 10px;
+}
+
+.bayRefused {
+  border-top-color: var(--color-idle);
+}
+
+.bay dt {
+  font-size: var(--text-lead);
+  font-variation-settings: "opsz" 15, "wdth" 100, "wght" 620;
+  letter-spacing: -0.015em;
+}
+
+.bay dd {
+  margin: 2px 0 0;
+  color: var(--color-ink-strong);
+  font-family: var(--ff-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+
+.bay small {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 300;
+  line-height: 1.45;
+}
+
+/* ------------------------------------------------------------- how it works */
+
+.mechanism {
+  display: grid;
+  grid-template-columns: minmax(280px, 470px) 1fr;
+  align-items: center;
+  gap: var(--space-band);
+  margin-top: var(--space-band);
+}
+
+.verdicts {
+  margin: 0;
+  padding: 0;
+}
+
+.verdictRow {
+  display: grid;
+  grid-template-columns: minmax(150px, 190px) 1fr;
+  align-items: baseline;
+  gap: var(--space-base);
+  border-top: 1px solid var(--color-rule);
+  padding: 10px 0;
+}
+
+.verdictRow:first-child {
+  border-top: 0;
+}
+
+.verdictRow p {
+  margin: 0;
+  max-width: var(--measure-prose);
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+
+/* ------------------------------------------------------------------- table */
+
+.tableScroll {
+  margin-top: var(--space-band);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  font-family: var(--ff-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+
+.table caption {
+  margin-bottom: var(--space-snug);
+  color: var(--color-ink-faint);
+  font-family: var(--ff-display);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 450;
+  text-align: left;
+}
+
+.table thead th {
+  border-bottom: 1px solid var(--color-rule-hard);
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  padding: 0 var(--space-snug) 6px 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.table tbody th {
+  border-bottom: 1px solid var(--color-rule);
+  padding: 8px var(--space-snug) 8px 0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th:first-child,
+.table td:first-child {
+  padding-left: 0;
+  text-align: left;
+}
+
+.table th:last-child,
+.table td:last-child {
+  padding-right: 0;
+  text-align: left;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table td {
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-ink-strong);
+  font-variant-numeric: tabular-nums;
+  padding: 8px var(--space-snug) 8px 0;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.tableTicker {
+  color: var(--color-ink);
+  font-family: var(--ff-display);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 100, "wght" 620;
+}
+
+.tableTicker span {
+  display: block;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-micro);
+  font-variation-settings: normal;
+  font-weight: 300;
+}
+
+.tableUnavailable {
+  color: var(--color-ink-faint);
+  font-weight: 300;
+}
+
+.tableWide {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+/* -------------------------------------------------------------- limitations */
+
+.limits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-band) var(--space-band);
+  margin: var(--space-band) 0 0;
+}
+
+.limit {
+  border-top: 1px solid var(--color-rule-hard);
+  padding-top: var(--space-snug);
+}
+
+.limit h3 {
+  margin: 0 0 6px;
+  font-size: var(--text-lead);
+  font-variation-settings: "opsz" 15, "wdth" 100, "wght" 620;
+  letter-spacing: -0.015em;
+}
+
+.limit p {
+  margin: 0;
+  max-width: 46ch;
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  line-height: 1.55;
+}
+
+.hatchStrip {
+  height: 22px;
+  margin-bottom: var(--space-snug);
+  border: 1px solid var(--color-rule-strong);
+}
+
+/* ------------------------------------------------------------- integrators */
+
+.integrator {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-band);
+  margin-top: var(--space-band);
+}
+
+.code {
+  margin: 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-housing);
+  background: var(--color-ground-sunken);
+  color: var(--color-ink-strong);
+  font-family: var(--ff-mono);
+  font-size: var(--text-figure);
+  font-weight: 400;
+  line-height: 1.65;
+  padding: var(--space-base);
+  tab-size: 2;
+}
+
+.deployList {
+  margin: var(--space-base) 0 var(--space-base);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px var(--space-base);
+}
+
+.deployRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-tight);
+  border-bottom: 1px solid var(--color-rule);
+  padding: 6px 0;
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+}
+
+.deployRow dt {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.deployRow dd {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-weight: 300;
+}
+
+.deployRow a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--color-rule-hard);
+  text-underline-offset: 3px;
+}
+
+.deployRow a:hover {
+  color: var(--color-ink);
+}
+
+/* ------------------------------------------------------------------ footer */
+
+.footer {
+  border-top: 1px solid var(--color-rule);
+  padding: var(--space-band) 0 var(--space-band);
+}
+
+.footerInner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-band);
+  flex-wrap: wrap;
+}
+
+.footerLeft {
+  display: grid;
+  gap: var(--space-base);
+}
+
+.footerLinks {
+  display: flex;
+  gap: var(--space-base);
+  flex-wrap: wrap;
+}
+
+.footerLinks a {
+  color: var(--color-ink-quiet);
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 92, "wght" 460;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+
+.footerLinks a:hover {
+  border-bottom-color: var(--color-rule-hard);
+  color: var(--color-ink);
+}
+
+.footerMeta {
+  margin: 0;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 300;
+  line-height: 1.7;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ narrow */
+
+@media (max-width: 900px) {
+  .mastInner {
+    height: 54px;
+  }
+
+  .brandName {
+    font-size: 17px;
+  }
+
+  .nav {
+    gap: var(--space-snug);
+  }
+
+  .nav a {
+    font-size: 12.5px;
+    white-space: nowrap;
+  }
+
+  .statusInner {
+    min-height: 0;
+    align-items: flex-start;
+    padding: 10px 0;
+    font-size: var(--text-caption);
+    line-height: 1.45;
+  }
+
+  .dot {
+    margin-top: 4px;
+  }
+
+  .claim {
+    margin-bottom: var(--space-snug);
+    font-size: clamp(26px, 7.4vw, 34px);
+    font-variation-settings: "opsz" 32, "wdth" 98, "wght" 620;
+    line-height: 1.08;
+  }
+
+  .lead {
+    margin-bottom: var(--space-base);
+    max-width: none;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+
+  .provenance {
+    margin-top: var(--space-snug);
+    max-width: none;
+    font-size: var(--text-micro);
+  }
+
+  .band {
+    padding: var(--space-wide) 0 var(--space-band);
+  }
+
+  .bandTop,
+  .mechanism,
+  .integrator {
+    grid-template-columns: 1fr;
+    gap: var(--space-base);
+  }
+
+  .bays {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: var(--space-wide);
+  }
+
+  .verdictRow {
+    grid-template-columns: 1fr;
+    gap: var(--space-hair);
+  }
+
+  .limits {
+    grid-template-columns: 1fr;
+    gap: var(--space-base);
+  }
+
+  .deployList {
+    grid-template-columns: 1fr;
+  }
+
+  .footerInner {
+    flex-direction: column;
+    gap: var(--space-base);
+  }
+
+  .footerMeta {
+    text-align: left;
+  }
+}
+
+/* ------------------------------------------------------- very narrow phones */
+
+/*
+ * The masthead is the one row that cannot afford `--space-wide` on a phone.
+ * At a 390px viewport the brand and the three section links measure 327px
+ * inside a 335px content box, so a 32px minimum gap pushes the last link 4px
+ * past the viewport and the whole page scrolls sideways. Tightening the two
+ * gaps and the link size buys about 15px of slack, which keeps every link
+ * where it is instead of dropping one.
+ */
+@media (max-width: 480px) {
+  .mastInner {
+    gap: var(--space-tight);
+  }
+
+  .nav {
+    gap: var(--space-tight);
+  }
+
+  .nav a {
+    font-size: 12px;
+  }
+}

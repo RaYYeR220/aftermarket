@@ -1,0 +1,324 @@
+/* ==========================================================================
+   Aftermarket design tokens
+   --------------------------------------------------------------------------
+   Three layers, and the dependency only ever runs downwards.
+
+     1. PRIMITIVE  --p-*     raw ramps. Named by ramp position, never by use.
+                             The only place a literal colour, length or family
+                             is written down.
+     2. SEMANTIC   --color-* --space-* --radius-* --text-* --ff-*
+                             what a value means in this product. Always a
+                             --p-* reference, never a literal.
+     3. COMPONENT  --panel-* --rail-* --figure-* --readout-* --verdict-*
+                   --hatch-* --button-* --field-*
+                             what one component paints. Always a --color-* or
+                             --space-* reference, never a literal.
+
+   Component code reads layer 3 and layer 2 only.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------- 1. PRIMITIVE */
+
+  /* Neutral, 12 steps. The measured Base cold greys, with the two Vitsoe
+     values (#F0F0F0 ground, #C2C2C2 rule) spliced in at 100 and 400. Step 650
+     is the other grey Base ships and it earns its place here: it is the darkest
+     step that still clears 4.5:1 on white, so every caption on the site can sit
+     on it. The three ramps are declared whole -- a ramp is the palette, and a
+     step nothing currently paints still says what the next one may use. */
+  --p-neutral-000: #ffffff;
+  --p-neutral-050: #f8f8f8;
+  --p-neutral-100: #f0f0f0;
+  --p-neutral-200: #e5e5e5;
+  --p-neutral-300: #dadada;
+  --p-neutral-400: #c2c2c2;
+  --p-neutral-500: #9a9a9a;
+  --p-neutral-600: #787878;
+  --p-neutral-650: #6f6f6f;
+  --p-neutral-700: #4a4a4a;
+  --p-neutral-800: #262626;
+  --p-neutral-900: #0a0b0d;
+
+  /* Blue, 11 steps, ordered by luminance and walking hue as it darkens.
+     Four steps are measured from shipped Base surfaces rather than mixed:
+     400 #55C5FF and 600 #0066FF (base.app), 700 #0052FF (Coinbase legacy),
+     900 #0000FF (Base pure). */
+  --p-blue-050: #f0f5ff;
+  --p-blue-100: #dce8ff;
+  --p-blue-200: #b6ceff;
+  --p-blue-300: #8dbeff;
+  --p-blue-400: #55c5ff;
+  --p-blue-500: #3d82ff;
+  --p-blue-600: #0066ff;
+  --p-blue-700: #0052ff;
+  --p-blue-800: #0032b8;
+  --p-blue-900: #0000ff;
+  --p-blue-950: #001e7a;
+  --p-blue-press: #0016cc;
+
+  /* Sage, 8 steps. Olive-leaning on purpose: this hue has to read as unused
+     room, not as approval, so it stays clear of the mint family. */
+  --p-sage-050: #f3f6ef;
+  --p-sage-100: #e4ebdb;
+  --p-sage-200: #cbd9bc;
+  --p-sage-300: #abbf97;
+  --p-sage-400: #8aa274;
+  --p-sage-500: #6b8358;
+  --p-sage-600: #4e6440;
+  --p-sage-700: #37472d;
+
+  /* Space: a 4px module, the shelf-pin pitch. */
+  --p-space-1: 4px;
+  --p-space-2: 8px;
+  --p-space-3: 12px;
+  --p-space-4: 20px;
+  --p-space-5: 32px;
+  --p-space-6: 52px;
+  --p-space-7: 84px;
+  --p-space-8: 136px;
+
+  /* Radius: deliberately bimodal. Hard object, soft chrome. */
+  --p-radius-0: 0px;
+  --p-radius-1: 4px;
+  --p-radius-2: 8px;
+  --p-radius-3: 12px;
+  --p-radius-pill: 999px;
+
+  /* Type */
+  --p-family-display: var(--font-bricolage), "Trebuchet MS", system-ui, sans-serif;
+  --p-family-mono: var(--font-azeret), ui-monospace, "Cascadia Mono", "Consolas", monospace;
+
+  --p-size-1: 10px;
+  --p-size-2: 10.5px;
+  --p-size-3: 11px;
+  --p-size-4: 12px;
+  --p-size-5: 13px;
+  --p-size-6: 14px;
+  --p-size-7: 15px;
+  --p-size-8: 16px;
+  --p-size-9: 20px;
+  --p-size-10: 24px;
+  --p-size-11: 30px;
+  --p-size-display: clamp(29px, 3.05vw, 43px);
+
+  --p-leading-tight: 1.055;
+  --p-leading-body: 1.56;
+  --p-leading-loose: 1.7;
+
+  --p-track-display: -0.028em;
+  --p-track-head: -0.025em;
+  --p-track-figure: -0.02em;
+  --p-track-flat: -0.005em;
+
+  /* Elevation. One hard offset; never a soft grey blur. */
+  --p-edge-ink: 0 1px 0 var(--p-blue-950);
+  --p-edge-thumb: 0 1px 3px rgb(0 0 32 / 0.34);
+
+  /* Motion. One spring, one duration; both switched off under
+     prefers-reduced-motion. */
+  --p-dur-fast: 0.14s;
+  --p-ease-linear: linear;
+
+  /* ---------------------------------------------------------------- 2. SEMANTIC */
+
+  --color-ground: var(--p-neutral-000);
+  --color-ground-sunken: var(--p-neutral-050);
+  --color-ground-inset: var(--p-neutral-100);
+
+  --color-ink: var(--p-neutral-900);
+  --color-ink-strong: var(--p-neutral-800);
+  --color-ink-quiet: var(--p-neutral-700);
+  /* The quietest step that still clears 4.5:1 on white at caption sizes, and
+     therefore the floor for anything a reader has to read. */
+  --color-ink-faint: var(--p-neutral-650);
+  /* Not a text colour. Drawing lines, tick marks, an unlit dot -- never a word. */
+  --color-ink-ghost: var(--p-neutral-500);
+  --color-ink-inverse: var(--p-neutral-000);
+
+  --color-rule: var(--p-neutral-200);
+  --color-rule-strong: var(--p-neutral-300);
+  --color-rule-hard: var(--p-neutral-400);
+
+  /* Base pure. Rationed to the things a person operates plus the wordmark: at
+     7% luminance it would flatten any shaded face it touched. */
+  --color-accent: var(--p-blue-900);
+  --color-accent-press: var(--p-blue-press);
+  --color-accent-wash: var(--p-blue-100);
+  --color-focus: var(--p-blue-900);
+
+  /* Cerulean holds one job: an exposed edge on the drawing, and the second
+     price source in prose. Never a page decoration. */
+  --color-edge-lit: var(--p-blue-400);
+
+  --color-agree: var(--p-blue-700);
+  --color-headroom: var(--p-sage-500);
+  --color-idle: var(--p-neutral-400);
+
+  /* Two more steps of the ladder every solid is shaded with, named here because
+     the wordmark is the same object at 18px and takes the same steps. */
+  --color-face-shadow: var(--p-blue-800);
+  --color-structure: var(--p-blue-300);
+
+  --space-hair: var(--p-space-1);
+  --space-tight: var(--p-space-2);
+  --space-snug: var(--p-space-3);
+  --space-base: var(--p-space-4);
+  --space-wide: var(--p-space-5);
+  --space-band: var(--p-space-6);
+  --space-section: var(--p-space-7);
+  --space-chapter: var(--p-space-8);
+
+
+  --radius-edge: var(--p-radius-0);
+  --radius-chip: var(--p-radius-1);
+  --radius-control: var(--p-radius-2);
+  --radius-housing: var(--p-radius-3);
+  --radius-dot: var(--p-radius-pill);
+
+  --ff-display: var(--p-family-display);
+  --ff-mono: var(--p-family-mono);
+
+  --text-micro: var(--p-size-1);
+  --text-fine: var(--p-size-2);
+  --text-caption: var(--p-size-3);
+  --text-label: var(--p-size-4);
+  --text-figure: var(--p-size-5);
+  --text-body: var(--p-size-6);
+  --text-lead: var(--p-size-7);
+  --text-readout: var(--p-size-8);
+  --text-subhead: var(--p-size-9);
+  --text-head: var(--p-size-10);
+  --text-delta: var(--p-size-11);
+  --text-claim: var(--p-size-display);
+
+  --measure-prose: 56ch;
+  --measure-lead: 47ch;
+  --measure-fine: 44ch;
+  --page-max: 1328px;
+
+  /* ---------------------------------------------------------------- 3. COMPONENT */
+
+  /* Panel: a bordered surface with a stated edge. */
+  --panel-bg: var(--color-ground-sunken);
+  --panel-bg-plain: var(--color-ground);
+  --panel-border-color: var(--color-rule-strong);
+  --panel-radius: var(--radius-housing);
+  --panel-pad-block: var(--space-snug);
+  --panel-pad-inline: var(--space-base);
+  --panel-title-color: var(--color-ink);
+  --panel-note-color: var(--color-ink-faint);
+
+  /* Rail: the horizontal control housing under the drawing. */
+  --rail-bg: var(--color-ground-sunken);
+  --rail-border-color: var(--color-rule-strong);
+  --rail-radius: var(--radius-housing);
+  --rail-track-bg: var(--color-ground-inset);
+  --rail-track-border-color: var(--color-rule-strong);
+  --rail-open-fill: var(--color-accent);
+  --rail-thumb-bg: var(--color-accent);
+  --rail-thumb-ring: var(--color-ground);
+  --rail-thumb-shadow: var(--p-edge-thumb);
+  --rail-tick-color: var(--color-ink-faint);
+  --rail-tick-mark: var(--color-rule-hard);
+
+  /* Hatch: the one pattern on the page. "No defensible mark here." */
+  --hatch-color: var(--color-rule-strong);
+  --hatch-angle: -25deg;
+  --hatch-gap: 6px;
+  --hatch-weight: 1px;
+
+  /* Wordmark: a drawing of the mechanism -- two uprights and three shelves --
+     rather than a symbol standing in for one, so it takes the object's own
+     ladder. This and the call to action are what Base pure is rationed to. */
+  --wordmark-upright: var(--color-accent);
+  --wordmark-shelf-top: var(--color-accent);
+  --wordmark-shelf-mid: var(--color-face-shadow);
+  --wordmark-shelf-low: var(--color-structure);
+
+  /* Figure: the isometric drawing sheet. Every solid gets three tints of one
+     hue -- top, left, right -- and light falls from above and from the left
+     for every object on the page. */
+  --figure-sheet-bg: var(--color-ground);
+  --figure-rule: var(--color-rule-hard);
+  --figure-annotation: var(--color-ink-faint);
+  --figure-annotation-value: var(--color-ink);
+  --figure-grid: var(--color-rule-strong);
+
+  --figure-draw-top: var(--p-blue-700);
+  --figure-draw-left: var(--color-face-shadow);
+  --figure-draw-right: var(--p-blue-950);
+  --figure-draw-edge: var(--p-blue-500);
+  --figure-draw-corner: var(--p-blue-600);
+  --figure-draw-label: var(--p-blue-200);
+
+  --figure-head-top: var(--p-sage-300);
+  --figure-head-left: var(--p-sage-400);
+  --figure-head-right: var(--p-sage-500);
+  --figure-head-edge: var(--p-sage-200);
+  --figure-head-corner: var(--p-sage-300);
+  --figure-head-label: var(--p-sage-700);
+
+  --figure-plate-top: var(--p-blue-500);
+  --figure-plate-left: var(--p-blue-700);
+  --figure-plate-right: var(--p-blue-800);
+  --figure-plate-edge: var(--color-edge-lit);
+
+  --figure-upright-top: var(--p-blue-100);
+  --figure-upright-left: var(--p-blue-200);
+  --figure-upright-right: var(--color-structure);
+  --figure-upright-pin: var(--p-blue-300);
+
+  --figure-ground-top: var(--p-neutral-100);
+  --figure-ground-left: var(--p-neutral-200);
+  --figure-ground-right: var(--p-neutral-300);
+
+  --figure-wire: var(--color-ink-ghost);
+  --figure-wire-hidden: var(--color-rule-hard);
+  --figure-wire-label: var(--color-ink-faint);
+
+  /* Shading. One light direction, one shade colour, no decorative gradient:
+     the two radial fills below are a light wash on the floor and two contact
+     shadows, and nothing else on the page is gradient-filled. */
+  --figure-shade: var(--color-ink);
+  --figure-light: var(--color-ground);
+  --figure-shadow: var(--color-ink);
+  --figure-shadow-cast: var(--p-blue-950);
+
+  /* Readout: a measured value with its key. Azeret measures. */
+  --readout-value-color: var(--color-ink);
+  --readout-key-color: var(--color-ink-faint);
+  --readout-rule-color: var(--color-rule);
+  --readout-unavailable-color: var(--color-ink-faint);
+
+  /* Verdict: the six oracle states. Each carries a mark and a word as well as
+     a colour, so colour is never the only carrier of state. */
+  --verdict-trusted: var(--color-accent);
+  --verdict-trusted-closed: var(--p-blue-700);
+  --verdict-stale: var(--color-ink-faint);
+  --verdict-divergent: var(--color-edge-lit);
+  --verdict-thin: var(--p-sage-500);
+  --verdict-halted: var(--color-ink-strong);
+  --verdict-id-color: var(--color-ink-faint);
+
+  /* Button */
+  --button-bg: var(--color-accent);
+  --button-fg: var(--color-ink-inverse);
+  --button-bg-hover: var(--color-accent-press);
+  --button-shadow: var(--p-edge-ink);
+  --button-radius: var(--radius-control);
+  --button-pad-block: 13px;
+  --button-pad-inline: var(--space-base);
+  --button-quiet-fg: var(--color-ink);
+  --button-quiet-border-color: var(--color-rule-hard);
+  --button-quiet-bg: var(--color-ground);
+  --button-quiet-bg-hover: var(--color-ground-inset);
+
+  /* Field */
+  --field-bg: var(--color-ground);
+  --field-border-color: var(--color-rule-hard);
+  --field-border-color-focus: var(--color-accent);
+  --field-radius: var(--radius-control);
+  --field-label-color: var(--color-ink-quiet);
+  --field-hint-color: var(--color-ink-faint);
+  --field-invalid-border-color: var(--color-ink-strong);
+}

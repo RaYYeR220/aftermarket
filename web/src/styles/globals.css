@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@source "../";
+
+/* Tailwind's utility layer is given the two families and the page measure so
+   that structural utilities agree with the design system rather than shadowing
+   it. Everything else a component paints comes from the token file. */
+@theme {
+  --font-display: var(--p-family-display);
+  --font-mono: var(--p-family-mono);
+  --container-page: 1328px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ground);
+  color: var(--color-ink);
+  font-family: var(--ff-display);
+  font-variation-settings: "opsz" 15, "wdth" 96, "wght" 400;
+  font-size: var(--text-lead);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-accent-wash);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
+a {
+  color: inherit;
+}
+
+/* The page measure. Every band uses it, so the left rule of the masthead and
+   the left rule of the footer are the same line. */
+.wrap {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding-inline: var(--space-wide);
+}
+
+@media (max-width: 900px) {
+  .wrap {
+    padding-inline: var(--space-base);
+  }
+}
+
+/* Nothing on this page animates on its own except one orchestrated load
+   moment, and that moment is skipped here rather than shortened. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

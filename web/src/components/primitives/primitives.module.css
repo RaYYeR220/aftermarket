@@ -1,0 +1,390 @@
+/* The Shelf primitives. Eight components, one register: honest materials,
+   visible structure, nothing decorative. Every value here is a token. */
+
+/* ============================================================ Panel ======= */
+
+.panel {
+  border: 1px solid var(--panel-border-color);
+  border-radius: var(--panel-radius);
+  background: var(--panel-bg);
+  padding: var(--panel-pad-block) var(--panel-pad-inline);
+}
+
+.panelPlain {
+  background: var(--panel-bg-plain);
+}
+
+.panelFlush {
+  padding: 0;
+  border: 0;
+  border-top: 2px solid var(--panel-border-color);
+  border-radius: var(--radius-edge);
+  background: transparent;
+  padding-top: var(--space-snug);
+}
+
+.panelHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-snug);
+  margin-bottom: var(--space-tight);
+}
+
+.panelTitle {
+  margin: 0;
+  color: var(--panel-title-color);
+  font-size: var(--text-lead);
+  font-variation-settings: "opsz" 15, "wdth" 100, "wght" 620;
+  letter-spacing: var(--p-track-figure);
+}
+
+.panelNote {
+  margin: 0;
+  color: var(--panel-note-color);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+/* ============================================================= Rail ======= */
+
+.rail {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--space-wide);
+  border: 1px solid var(--rail-border-color);
+  border-radius: var(--rail-radius);
+  background: var(--rail-bg);
+  padding: var(--space-snug) var(--space-base) 10px;
+}
+
+.railLead {
+  min-width: 0;
+}
+
+.railBody {
+  min-width: 0;
+}
+
+.railTrail {
+  text-align: right;
+}
+
+.railHint {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  color: var(--color-ink-faint);
+  font-size: var(--text-caption);
+  font-variation-settings: "opsz" 12, "wdth" 88, "wght" 400;
+}
+
+@media (max-width: 900px) {
+  .rail {
+    grid-template-columns: 1fr auto;
+    gap: var(--space-snug) var(--space-base);
+    padding: var(--space-snug) var(--space-snug) var(--space-tight);
+  }
+
+  .railBody {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+
+  .railHint {
+    order: 4;
+    margin-top: 0;
+  }
+}
+
+/* =========================================================== Figure ======= */
+
+.figure {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  margin: 0;
+  background: var(--figure-sheet-bg);
+}
+
+.figureCaption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-tight);
+  margin: var(--space-tight) 2px 0;
+  border-top: 1px solid var(--color-rule);
+  padding-top: 7px;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-fine);
+  font-weight: 300;
+}
+
+.figureCaption b {
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+/* The caption doubles as the legend that replaces the leader callouts once the
+   drawing is too narrow to carry them, so it only appears at that width. */
+.figureCaptionNarrowOnly {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .figureCaptionNarrowOnly {
+    display: flex;
+  }
+}
+
+/* ========================================================== Readout ======= */
+
+.readout {
+  display: block;
+  /* A readout is nearly always a grid item, and a measured value must be allowed to shrink with
+     its column rather than force the column wider than the page. */
+  min-width: 0;
+}
+
+.readoutValue {
+  display: block;
+  overflow-wrap: break-word;
+  color: var(--readout-value-color);
+  font-family: var(--ff-mono);
+  font-size: var(--text-readout);
+  font-weight: 500;
+  letter-spacing: var(--p-track-figure);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.readoutValueSm {
+  font-size: var(--text-label);
+}
+
+.readoutValueLg {
+  font-size: var(--text-delta);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+}
+
+.readoutUnavailable {
+  color: var(--readout-unavailable-color);
+  font-weight: 400;
+  font-style: normal;
+}
+
+.readoutKey {
+  display: block;
+  margin-top: 2px;
+  color: var(--readout-key-color);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 88, "wght" 450;
+}
+
+.readoutRight {
+  text-align: right;
+}
+
+/* Below this width two large readouts share a 350px column, and the display size no longer fits a
+   value like "unavailable" without pushing the page sideways. */
+@media (max-width: 600px) {
+  .readoutValueLg {
+    font-size: var(--text-subhead);
+  }
+}
+
+/* ========================================================== Verdict ======= */
+
+.verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-tight);
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+}
+
+.verdictMark {
+  display: block;
+  flex: none;
+  color: var(--verdict-tone);
+}
+
+.verdictRecord {
+  color: var(--verdict-id-color);
+}
+
+.verdictWord {
+  color: var(--verdict-tone);
+  font-weight: 500;
+}
+
+.verdictTrusted {
+  --verdict-tone: var(--verdict-trusted);
+}
+.verdictTrustedClosed {
+  --verdict-tone: var(--verdict-trusted-closed);
+}
+.verdictStale {
+  --verdict-tone: var(--verdict-stale);
+}
+.verdictDivergent {
+  --verdict-tone: var(--verdict-divergent);
+}
+.verdictThin {
+  --verdict-tone: var(--verdict-thin);
+}
+.verdictHalted {
+  --verdict-tone: var(--verdict-halted);
+}
+
+/* ============================================================ Hatch ======= */
+
+/* One pattern on the whole site, with one meaning: no defensible mark here. */
+.hatch {
+  background-image: repeating-linear-gradient(
+    var(--hatch-angle),
+    transparent 0 var(--hatch-gap),
+    var(--hatch-color) var(--hatch-gap) calc(var(--hatch-gap) + var(--hatch-weight))
+  );
+}
+
+.hatchBlock {
+  display: block;
+  border: 1px solid var(--color-rule-strong);
+  border-radius: var(--radius-edge);
+  padding: var(--space-snug) var(--space-base);
+}
+
+.hatchLabel {
+  display: inline-block;
+  background: var(--color-ground);
+  padding: 2px 6px;
+  color: var(--color-ink-quiet);
+  font-family: var(--ff-mono);
+  font-size: var(--text-caption);
+  font-weight: 400;
+}
+
+/* =========================================================== Button ======= */
+
+.button {
+  display: inline-block;
+  border: 0;
+  border-radius: var(--button-radius);
+  background: var(--button-bg);
+  box-shadow: var(--button-shadow);
+  color: var(--button-fg);
+  cursor: pointer;
+  font-family: var(--ff-display);
+  font-size: 14.5px;
+  font-variation-settings: "opsz" 15, "wdth" 100, "wght" 560;
+  letter-spacing: -0.012em;
+  padding: var(--button-pad-block) 24px;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    background var(--p-dur-fast) var(--p-ease-linear),
+    transform var(--p-dur-fast) var(--p-ease-linear);
+}
+
+.button:hover {
+  background: var(--button-bg-hover);
+  transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
+}
+
+.button:disabled {
+  cursor: default;
+  opacity: 0.55;
+  transform: none;
+}
+
+.buttonQuiet {
+  border: 1px solid var(--button-quiet-border-color);
+  background: var(--button-quiet-bg);
+  box-shadow: none;
+  color: var(--button-quiet-fg);
+  padding: 11px 18px;
+  font-size: var(--text-body);
+  font-variation-settings: "opsz" 14, "wdth" 96, "wght" 520;
+}
+
+.buttonQuiet:hover {
+  background: var(--button-quiet-bg-hover);
+}
+
+/* ============================================================ Field ======= */
+
+.field {
+  display: block;
+}
+
+.fieldLabel {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--field-label-color);
+  font-size: var(--text-label);
+  font-variation-settings: "opsz" 12, "wdth" 92, "wght" 500;
+}
+
+.fieldShell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-tight);
+  border: 1px solid var(--field-border-color);
+  border-radius: var(--field-radius);
+  background: var(--field-bg);
+  padding: 9px 12px;
+}
+
+.fieldShell:focus-within {
+  border-color: var(--field-border-color-focus);
+}
+
+.fieldShellInvalid {
+  border-color: var(--field-invalid-border-color);
+}
+
+.fieldInput {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-ink);
+  font-family: var(--ff-mono);
+  font-size: var(--text-body);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.fieldInput::placeholder {
+  color: var(--color-ink-faint);
+}
+
+.fieldSuffix {
+  flex: none;
+  color: var(--color-ink-faint);
+  font-family: var(--ff-mono);
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+
+.fieldHint {
+  margin: 5px 0 0;
+  color: var(--field-hint-color);
+  font-size: var(--text-caption);
+  font-variation-settings: "opsz" 12, "wdth" 90, "wght" 400;
+}

@@ -1,0 +1,275 @@
+/* Every face, edge and annotation in the isometric scene resolves its paint
+   here, so the drawing is coloured by the token file and not by its geometry. */
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0 auto;
+  max-height: min(548px, 60vh);
+}
+
+/* A drawing that carries its own labels, sized to sit beside prose rather than
+   to fill a column: no height cap, so it renders close to 1:1. */
+.svgFlat {
+  display: block;
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  margin: 0 auto;
+}
+
+.svg text,
+.svgFlat text {
+  font-family: var(--ff-mono);
+  letter-spacing: 0.4px;
+}
+
+/* Narrow screens drop the leader callouts and the title block and scale the
+   object up into the room they leave. Both the hiding and the scaling are CSS,
+   so the server and the client always render the same markup. */
+.annotations {
+  display: block;
+}
+
+.body {
+  transform: none;
+}
+
+@media (max-width: 900px) {
+  .svg {
+    max-height: none;
+  }
+
+  .annotations {
+    display: none;
+  }
+
+  .body {
+    transform: scale(1.32);
+    transform-origin: 50% 56%;
+  }
+}
+
+/* -- ground plate --------------------------------------------------------- */
+.groundTop {
+  fill: var(--figure-ground-top);
+}
+.groundLeft {
+  fill: var(--figure-ground-left);
+}
+.groundRight {
+  fill: var(--figure-ground-right);
+}
+.groundLight {
+  fill: url(#shelf-light);
+}
+.groundGrid {
+  fill: none;
+  stroke: var(--figure-grid);
+  stroke-width: 0.7;
+  opacity: 0.55;
+}
+.groundOutline {
+  fill: none;
+  stroke: var(--figure-rule);
+  stroke-width: 1;
+}
+
+/* -- shadows --------------------------------------------------------------- */
+.shadowSoft {
+  fill: url(#shelf-shadow-cast);
+}
+.shadowContact {
+  fill: url(#shelf-shadow-contact);
+}
+.lightStopIn {
+  stop-color: var(--figure-light);
+  stop-opacity: 0.95;
+}
+.lightStopOut {
+  stop-color: var(--figure-light);
+  stop-opacity: 0;
+}
+.contactStop0 {
+  stop-color: var(--figure-shadow);
+  stop-opacity: 0.3;
+}
+.contactStop1 {
+  stop-color: var(--figure-shadow);
+  stop-opacity: 0.13;
+}
+.contactStop2 {
+  stop-color: var(--figure-shadow);
+  stop-opacity: 0;
+}
+.castStop0 {
+  stop-color: var(--figure-shadow-cast);
+  stop-opacity: 0.17;
+}
+.castStop1 {
+  stop-color: var(--figure-shadow-cast);
+  stop-opacity: 0.06;
+}
+.castStop2 {
+  stop-color: var(--figure-shadow-cast);
+  stop-opacity: 0;
+}
+
+/* -- uprights -------------------------------------------------------------- */
+.uprightTop {
+  fill: var(--figure-upright-top);
+}
+.uprightLeft {
+  fill: var(--figure-upright-left);
+}
+.uprightRight {
+  fill: var(--figure-upright-right);
+}
+.uprightPin {
+  fill: none;
+  stroke: var(--figure-upright-pin);
+  stroke-width: 1.5;
+  opacity: 0.9;
+}
+.uprightHighlight {
+  fill: none;
+  stroke: var(--figure-light);
+  stroke-width: 1;
+  opacity: 0.65;
+}
+
+/* -- drawn balance --------------------------------------------------------- */
+.drawTop {
+  fill: var(--figure-draw-top);
+}
+.drawLeft {
+  fill: var(--figure-draw-left);
+}
+.drawRight {
+  fill: var(--figure-draw-right);
+}
+.drawEdge {
+  fill: none;
+  stroke: var(--figure-draw-edge);
+  stroke-width: 1.3;
+}
+.drawCorner {
+  fill: none;
+  stroke: var(--figure-draw-corner);
+  stroke-width: 1;
+  opacity: 0.85;
+}
+.drawLabel {
+  fill: var(--figure-draw-label);
+  font-weight: 500;
+}
+
+/* -- headroom -------------------------------------------------------------- */
+.headTop {
+  fill: var(--figure-head-top);
+}
+.headLeft {
+  fill: var(--figure-head-left);
+}
+.headRight {
+  fill: var(--figure-head-right);
+}
+.headEdge {
+  fill: none;
+  stroke: var(--figure-head-edge);
+  stroke-width: 1.3;
+}
+.headCorner {
+  fill: none;
+  stroke: var(--figure-head-corner);
+  stroke-width: 1;
+  opacity: 0.9;
+}
+.headLabel {
+  fill: var(--figure-head-label);
+  font-weight: 500;
+}
+
+/* -- ceiling plate --------------------------------------------------------- */
+.plateTop {
+  fill: var(--figure-plate-top);
+}
+.plateLeft {
+  fill: var(--figure-plate-left);
+}
+.plateRight {
+  fill: var(--figure-plate-right);
+}
+.plateEdge {
+  fill: none;
+  stroke: var(--figure-plate-edge);
+  stroke-width: 1.7;
+  stroke-linejoin: round;
+}
+.plateSeam {
+  fill: none;
+  stroke: var(--figure-plate-top);
+  stroke-width: 1;
+}
+
+/* -- the collateral this session will not lend against --------------------- */
+.wire {
+  fill: none;
+  stroke: var(--figure-wire);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+.wireHidden {
+  fill: none;
+  stroke: var(--figure-wire-hidden);
+  stroke-width: 1;
+  stroke-dasharray: 2.5 3.5;
+}
+.wireLabel {
+  fill: var(--figure-wire-label);
+  font-weight: 500;
+}
+
+/* -- shading and levels ---------------------------------------------------- */
+.occlusion {
+  fill: var(--figure-shade);
+}
+.levelLine {
+  fill: none;
+  stroke: var(--color-edge-lit);
+  stroke-width: 2;
+}
+
+/* -- drawing apparatus ----------------------------------------------------- */
+.construction {
+  fill: none;
+  stroke: var(--figure-rule);
+  stroke-width: 1.1;
+  stroke-dasharray: 5 4;
+}
+.leader {
+  fill: none;
+  stroke: var(--figure-rule);
+  stroke-width: 1;
+}
+.leaderDot {
+  fill: var(--color-ink-ghost);
+}
+.leaderDotLimit {
+  fill: var(--figure-plate-top);
+}
+.leaderDotDrawn {
+  fill: var(--color-edge-lit);
+}
+.leaderDotHead {
+  fill: var(--color-headroom);
+}
+.annotationKey {
+  fill: var(--figure-annotation);
+  font-weight: 400;
+}
+.annotationValue {
+  fill: var(--figure-annotation-value);
+  font-weight: 500;
+}
