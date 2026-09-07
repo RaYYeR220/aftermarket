@@ -1,0 +1,3 @@
+# Runtime decision trail. Every tick appends to it, so it is machine output rather than source.
+# The evaluation's own trail under eval/results/ is committed on purpose: it is evidence.
+audit/

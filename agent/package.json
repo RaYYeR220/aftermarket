@@ -1,0 +1,35 @@
+{
+  "name": "@aftermarket/agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Off-chain keeper for Aftermarket's AutoRepayer: a rule-based decision engine that records every refusal, simulates before it signs, and is scored against a pre-registered answer key on a Base mainnet fork.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "aftermarket-keeper": "dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "eval": "node dist/cli.js eval"
+  },
+  "dependencies": {
+    "@aftermarket/session-oracle": "workspace:*",
+    "viem": "2.56.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/node": "^22.10.2"
+  },
+  "engines": {
+    "node": ">=18.11"
+  }
+}

@@ -1,0 +1,1388 @@
+{
+  "schema": "aftermarket.keeper.eval/1",
+  "startedAt": "2026-09-07T10:53:29.494Z",
+  "finishedAt": "2026-09-07T10:56:08.973Z",
+  "answerKeyHash": "271c4b7c7cafadba04e8faf9c69daf301bb7f14a4a017e8789f50428b2fdddd4",
+  "fork": {
+    "chainId": 8453,
+    "blockNumber": "50995435",
+    "note": "A base-anvil fork of Base mainnet. USDC, Coinbase's SpendPermissionManager and the CoinbaseSmartWalletFactory are the live mainnet contracts; Aftermarket itself is deployed fresh from the same sources as the mainnet system, with a controllable feed, pool and calendar per line."
+  },
+  "deployment": {
+    "credit": "0xb3ba00b2045db69331bd0b25bcc22a90244a3f8e",
+    "vault": "0xdc199ec5966a43743a69a3744728ee98c0414341",
+    "autoRepayer": "0x113d1b8cec550522b3931aed2b1c7d009785dcde",
+    "lens": "0xefab37d953fe4734a274f48ddcd35f7e8c742a54",
+    "calendar": "0x15190c5c642d9110b5733dfcfdaea08397e13b17",
+    "eligibility": "0x4f2e5a01dbd659a40cbd44163231fab063a1844b",
+    "rateModel": "0xaa66ff2182f4362f010da27c320f5d01fca7fa50",
+    "swapAdapter": "0xf393fb9a5a9fe61e6983313d39400e208b3b820d",
+    "usdc": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "spendPermissionManager": "0xf85210B21cC50302F477BA56686d2019dC9b67Ad",
+    "smartWalletFactory": "0x0BA5ED0c6AA8c49038F819E587E2633c4A9F428a",
+    "usdcBalanceSlot": 9
+  },
+  "liveOracles": [
+    {
+      "ticker": "NVDAc",
+      "oracle": "0x1E2b20B4703F97710c2600eA73179c6CD1E00b02",
+      "verdict": 1,
+      "session": 5,
+      "divergenceBps": "108",
+      "divergenceBand": "300",
+      "feedAge": "233409",
+      "priceReverts": false,
+      "priceError": null
+    },
+    {
+      "ticker": "AMZNc",
+      "oracle": "0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C",
+      "verdict": 3,
+      "session": 5,
+      "divergenceBps": "898",
+      "divergenceBand": "300",
+      "feedAge": "225989",
+      "priceReverts": true,
+      "priceError": "SourcesDiverged(session=CLOSED_HOLIDAY, divergence=898bps, band=300bps)"
+    },
+    {
+      "ticker": "AAPLc",
+      "oracle": "0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc",
+      "verdict": 1,
+      "session": 5,
+      "divergenceBps": "40",
+      "divergenceBand": "300",
+      "feedAge": "226549",
+      "priceReverts": false,
+      "priceError": null
+    },
+    {
+      "ticker": "METAc",
+      "oracle": "0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2",
+      "verdict": 1,
+      "session": 5,
+      "divergenceBps": "33",
+      "divergenceBand": "300",
+      "feedAge": "229457",
+      "priceReverts": false,
+      "priceError": null
+    },
+    {
+      "ticker": "GOOGLc",
+      "oracle": "0x203cDf7e33eA0d652cA54f4807c9d2d1d081C9aA",
+      "verdict": 1,
+      "session": 5,
+      "divergenceBps": "22",
+      "divergenceBand": "300",
+      "feedAge": "246583",
+      "priceReverts": false,
+      "priceError": null
+    },
+    {
+      "ticker": "TSLAc",
+      "oracle": "0x74058d51B3b04Ba09be2aa51ab1CE930Dd3c2C99",
+      "verdict": 1,
+      "session": 5,
+      "divergenceBps": "42",
+      "divergenceBand": "300",
+      "feedAge": "226307",
+      "priceReverts": false,
+      "priceError": null
+    }
+  ],
+  "scorecard": {
+    "total": 32,
+    "correct": 32,
+    "incorrect": 0,
+    "falseActions": 0,
+    "traps": 11,
+    "trapsRefused": 11,
+    "negativeControls": 6,
+    "negativeControlsActed": 6,
+    "invariantViolations": 0,
+    "passed": true,
+    "headline": "32/32 correct · 0 false actions · 11/11 traps refused · 6/6 negative controls acted"
+  },
+  "results": [
+    {
+      "id": "S01",
+      "title": "Comfortably healthy line, market open",
+      "category": "healthy",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x1D2f481712A4630d9520021A624674DdD445B87D",
+      "expected": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x5a4aa9b31248c72f5d4783648af3109169bbc1062b88e76e7463bfae94fb693f",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S02",
+      "title": "Health exactly on the trigger",
+      "category": "healthy",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0xc9a4b46329E4738858CaacF9B97F5c80E2a3C089",
+      "expected": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x8bd4d7e08ef91c71bc28f74f20f2cb78252ff3d0edd680f8e794201126846303",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S03",
+      "title": "Enrolled line carrying no debt at all",
+      "category": "healthy",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x4E24313998c379DFBe0DBcD9D40c99A16791c305",
+      "expected": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x0abcc9c0b69959e6bb1edfe14644fe4dbbcf79b8517db2c504d2f1b764afa1de",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S04",
+      "title": "Healthy line while the US market is shut",
+      "category": "healthy",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x86fd604CF12f750461B9c87187ebe83Da7e54e73",
+      "expected": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xb677ee6ee42309db88c9340a8c443b1e4dc539c289b3f7004601c0cf69e002c6",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED_CLOSED",
+        "session": "CLOSED_HOLIDAY",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S05",
+      "title": "NEGATIVE CONTROL — plainly distressed line, everything in order",
+      "category": "distressed",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0xFc489b1af00f42395C1159209FAA8Cf72eAd035D",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "acted": true,
+      "repaid": "20647925226",
+      "txHash": "0xefe914117512381357f65aad9198ada2571a0a5619eabd63ea97798da015dba3",
+      "borrowerUsdcDelta": "-20647925226",
+      "debtDelta": "-20647925226",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994823 (success)"
+    },
+    {
+      "id": "S06",
+      "title": "Flagged line whose health is above the trigger",
+      "category": "distressed",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x72E84a5e49ffD43F138C97A3913A3652FeEA6FaD",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "2472973612"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "2472973612"
+      },
+      "acted": true,
+      "repaid": "2472973612",
+      "txHash": "0x5c8d3d39c552fa7f9a94efc9c0c3b3cbaa3b6704d282c8985a498f6327bf0976",
+      "borrowerUsdcDelta": "-2472973612",
+      "debtDelta": "-2472973612",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994842 (success)"
+    },
+    {
+      "id": "S07",
+      "title": "Flagged line inside a market-closed grace window",
+      "category": "distressed",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xa88d0f992bE227D6e50012b26DB5ba3bfbBfd3E2",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "10734315254"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "10734315254"
+      },
+      "acted": true,
+      "repaid": "10734315254",
+      "txHash": "0x20e1971c0c83dc2899c0a6bff19b13ff639c3677d81961753f305e31b98d1b7c",
+      "borrowerUsdcDelta": "-10734315254",
+      "debtDelta": "-10734315254",
+      "oracle": {
+        "verdict": "TRUSTED_CLOSED",
+        "session": "CLOSED_HOLIDAY",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994902 (success)"
+    },
+    {
+      "id": "S08",
+      "title": "Deeply distressed line, well inside every cap",
+      "category": "distressed",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0xdb6F0c5F7cb5Ec6263FA3c010492a9dc98aF68b5",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "33039937689"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "33039937689"
+      },
+      "acted": true,
+      "repaid": "33039937689",
+      "txHash": "0x91f0623b0c1d871e16e39ec8a45aef6fab8bec3e35c3f0f0b3b1a03b57d778fd",
+      "borrowerUsdcDelta": "-33039937689",
+      "debtDelta": "-33039937689",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994918 (success)"
+    },
+    {
+      "id": "S09",
+      "title": "Repayment exactly equal to the per-execution cap",
+      "category": "cap",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0x101fED5c7066bd2cF109ABcB2a413d580B03FDF2",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "acted": true,
+      "repaid": "20647925226",
+      "txHash": "0x11e21fdc3b1644181c20a6eaa0eadec10e1de43d76b4e834177d876087ccec74",
+      "borrowerUsdcDelta": "-20647925226",
+      "debtDelta": "-20647925226",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994935 (success)"
+    },
+    {
+      "id": "S10",
+      "title": "Repayment exactly equal to the remaining allowance",
+      "category": "allowance",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0x5dC50c84BC1d8B30dD7dd014d88cf3C754568A7A",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "20647925226"
+      },
+      "acted": true,
+      "repaid": "20647925226",
+      "txHash": "0x87b88b86c6cf646a8325ccaed823a246aaff4bf618500724aeeeff4eeb377792",
+      "borrowerUsdcDelta": "-20647925226",
+      "debtDelta": "-20647925226",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994952 (success)"
+    },
+    {
+      "id": "S11",
+      "title": "Distressed line one second after the interval elapses",
+      "category": "interval",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0xee1CB4204909D314d0E64446931cb276d0E32D15",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "13649173147"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "13649173147"
+      },
+      "acted": true,
+      "repaid": "13649173147",
+      "txHash": "0xeddd08671fcc1eda70b5f011e2cebeec97e7110e46ce61804cb752dca9487ab0",
+      "borrowerUsdcDelta": "-13649173147",
+      "debtDelta": "-13649173147",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50994974 (success)"
+    },
+    {
+      "id": "S12",
+      "title": "Sources diverged — the live AMZNc failure, reproduced",
+      "category": "oracle-untrusted",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x918474af7358e94C73087f5B6D41f033a6c0729b",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xd37eaf86257fea4ab14d1828040d28cf83cb424fb3588762e215b93cbbf7ac92",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_DIVERGENT",
+        "session": "CLOSED_HOLIDAY",
+        "divergenceBps": "910",
+        "priceError": "SourcesDiverged(session=CLOSED_HOLIDAY, divergence=910bps, band=300bps)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S13",
+      "title": "Reference feed stale beyond its session budget",
+      "category": "oracle-untrusted",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xF34AEBBD376F04fe16210c3e6A887dc948f7ed37",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x9560a3845d02f2a3eebc8d8b56242c8a62e49ae6af4c30e14fc9ea659b9c95c5",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_STALE",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": "StaleFeed(session=REGULAR, age=187200s, budget=3600s)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S14",
+      "title": "Corporate-action halt on the collateral token",
+      "category": "oracle-untrusted",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x3A348EaeE0b149b3556E6B51a009C8F61d0c38bA",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x4541cbd3a264cd2b735d0b51cfc5c82f9b8387b333ac2fe75b6cd3ad8a0c49e1",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_HALTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": "MarketHalted(multiplier=2000000000000000000000)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S15",
+      "title": "Pool too thin to corroborate a frozen feed, market closed",
+      "category": "oracle-untrusted",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xC2e73424037AEC81E0DA42BA129a50Ca5880D092",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x879550b3a9906532c0a829c0e5a44a843830ab757be6695e74143a1db4626272",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_THIN",
+        "session": "CLOSED_WEEKEND",
+        "divergenceBps": "0",
+        "priceError": "PoolTooThin(liquidityUsd=0, min=25000000000000000000000)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S16",
+      "title": "TRAP — catastrophically underwater line with no defensible mark",
+      "category": "oracle-untrusted",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x63a506aFC4FCea4925e1791A69D5d44642Ee1768",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xaba273c4da77e6da0bc2525eacf3dceacdc0f97f25eb70ba96287a920c164599",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_STALE",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": "StaleFeed(session=REGULAR, age=324000s, budget=3600s)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S17",
+      "title": "TRAP — flagged line, grace expiring, oracle untrusted",
+      "category": "oracle-untrusted",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0xc63654A08a7f1a8d3A4bC0ea52d6aFAbB78257B5",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xdfcb6761bc0e3606a63a7a450b73a5f31241e4e3e7760a488455596aeb791af2",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "UNTRUSTED_DIVERGENT",
+        "session": "CLOSED_WEEKEND",
+        "divergenceBps": "1200",
+        "priceError": "SourcesDiverged(session=CLOSED_WEEKEND, divergence=1200bps, band=250bps)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S18",
+      "title": "Credit engine itself unreachable — calendar down",
+      "category": "oracle-untrusted",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x7f7450435eE77C00DbBe556F63919F2fcf0FE10e",
+      "expected": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 4,
+        "reasonName": "ORACLE_UNTRUSTED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xe2b924b5a1acc5de39fec1bcbbac9b704aa73ecc765cb500d0a433bd27a1790f",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "unavailable",
+      "oracle": {
+        "verdict": "UNTRUSTED_THIN",
+        "session": "CLOSED_HOLIDAY",
+        "divergenceBps": "0",
+        "priceError": "PoolTooThin(liquidityUsd=0, min=25000000000000000000000)"
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S19",
+      "title": "TRAP — repayment one unit above the per-execution cap",
+      "category": "cap",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x280e30F07CEaD14fcb02C9dd47ec64a33a735Aea",
+      "expected": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION",
+        "amount": "20647925226"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x911a9b864c5a1cc5fe8c8748294495bd7773a71c36bca7e4755123f3ccba47b0",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S20",
+      "title": "Repayment far above a deliberately small per-execution cap",
+      "category": "cap",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xE4Ae0d7Bd34802Da8a0Cf53dEAaEa05df2F4C34C",
+      "expected": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION",
+        "amount": "28909266870"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 7,
+        "reasonName": "ABOVE_MAX_PER_EXECUTION",
+        "amount": "28909266870"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x8eeb16ae00a4439ea166cb1b3529538ba2ac9becc862480f34bfffe344ac819d",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S21",
+      "title": "TRAP — allowance partly consumed, next repayment no longer fits",
+      "category": "allowance",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x2B98Eeef7F62E122e866BAaCa0333729FD00295b",
+      "expected": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "5962964560"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "5962964560"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x2bb2c37d3ac53be22164a6cfacf9b5d361826964ba195bf407978838dd3bc735",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S22",
+      "title": "TRAP — repayment one unit above the remaining allowance",
+      "category": "allowance",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0xdDe3617F0CC4c0C4Faa0b33b7A1B32289523BC06",
+      "expected": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xa39aa6e73184eba092160137f1f0255f1d0baac5d530767f724889dbe314e2a0",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S23",
+      "title": "Spend permission has expired",
+      "category": "permission",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xB30651c570FC1f885f86F03aD8ee51Ac102b302D",
+      "expected": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x99686df9b3f13822c72ed10b363d9e12b14c6470f3212166b4b709c4876f97f2",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S24",
+      "title": "Spend permission has not started yet",
+      "category": "permission",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xBbA727e7F203c55FB7c4A0ffbf92Ba24930ef999",
+      "expected": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xfbbc59b6a5b1dd0cf0414dee690ba43627be6c96e96cec993475608177ca4ae8",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S25",
+      "title": "TRAP — permission revoked at the manager, mandate left in place",
+      "category": "permission",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0xd858A8D04af40a565aAA9AEc803D3F338014Cd8e",
+      "expected": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 8,
+        "reasonName": "PERMISSION_UNAVAILABLE",
+        "amount": "20647925226"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x6d096deecdc2f90e45ba82c243c32c7ae7f875cfdc65feb0d2153fbf1defc99b",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S26",
+      "title": "Distressed line that never enrolled",
+      "category": "mandate",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0x657F0D5A628d3d26Ff45660D454006D41BEaEEF9",
+      "expected": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x2bce563cdb6afd5181be9718d2d1b43f6995a89948b70eb5fa0b447f917e0f7f",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S27",
+      "title": "Mandate withdrawn while the line was still distressed",
+      "category": "mandate",
+      "trap": false,
+      "negativeControl": false,
+      "account": "0xa0D990147663318802dec183A09A750b011F8573",
+      "expected": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 1,
+        "reasonName": "NOT_ENROLLED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x5f64fc0993d8c3966b6d20ce1b2e9f8aabb8dbe9ee7c3c229d84a3fb8159a294",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S28",
+      "title": "TRAP — mandate switched off on a distressed line",
+      "category": "mandate",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x869F3a3366502b250132F593aa2f393a2893124D",
+      "expected": {
+        "willAct": false,
+        "reason": 2,
+        "reasonName": "POLICY_DISABLED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 2,
+        "reasonName": "POLICY_DISABLED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 2,
+        "reasonName": "POLICY_DISABLED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xa2710a560e125018853cdcd9f5d3d1f5d4c55b76682c2ad944abdbd46a10e8fc",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S29",
+      "title": "TRAP — distressed line inside its own rate limit",
+      "category": "interval",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x53126c73E7D5a9506de05b73FE1e250E59838144",
+      "expected": {
+        "willAct": false,
+        "reason": 3,
+        "reasonName": "INTERVAL_NOT_ELAPSED"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 3,
+        "reasonName": "INTERVAL_NOT_ELAPSED",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 3,
+        "reasonName": "INTERVAL_NOT_ELAPSED",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0x86094f55973e0b858501a30d4d1f5c49a3a01a28c56027b10d45f769a59ecc0a",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S30",
+      "title": "TRAP — line already cured by somebody else",
+      "category": "cured",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0x47711BD2CA81853B133A0916C29C73E8e9202FC5",
+      "expected": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 5,
+        "reasonName": "LINE_HEALTHY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xd9fcb463bab1afe8a1ccb1335990b011c832564e075bdf566c1f97331b4e3392",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S31",
+      "title": "TRAP — flagged line whose debt is already at the recovery target",
+      "category": "cured",
+      "trap": true,
+      "negativeControl": false,
+      "account": "0xCE9fF9Ea421E354249AFd506c006F37090570D15",
+      "expected": {
+        "willAct": false,
+        "reason": 6,
+        "reasonName": "NOTHING_TO_REPAY"
+      },
+      "engine": {
+        "willAct": false,
+        "reason": 6,
+        "reasonName": "NOTHING_TO_REPAY",
+        "amount": "0"
+      },
+      "contract": {
+        "willAct": false,
+        "reason": 6,
+        "reasonName": "NOTHING_TO_REPAY",
+        "amount": "0"
+      },
+      "acted": false,
+      "repaid": null,
+      "txHash": "0xb632cf6946afaa765f138a8a463e152746e6a3e83118ce0fd5bfe3e266480d4f",
+      "borrowerUsdcDelta": "0",
+      "debtDelta": "0",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "refusal written on-chain"
+    },
+    {
+      "id": "S32",
+      "title": "Dust repayment on a flagged line",
+      "category": "dust",
+      "trap": false,
+      "negativeControl": true,
+      "account": "0xe7455Ae4dd87B1D65E8b8F97Bc18F072dC981A28",
+      "expected": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE"
+      },
+      "engine": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "100"
+      },
+      "contract": {
+        "willAct": true,
+        "reason": 0,
+        "reasonName": "NONE",
+        "amount": "100"
+      },
+      "acted": true,
+      "repaid": "100",
+      "txHash": "0x734b4d964fd2d902abdfbbf6e97c96dd71246f181409dbf90f04ce91f66d565d",
+      "borrowerUsdcDelta": "-100",
+      "debtDelta": "-100",
+      "oracle": {
+        "verdict": "TRUSTED",
+        "session": "REGULAR",
+        "divergenceBps": "0",
+        "priceError": null
+      },
+      "violations": [],
+      "correct": true,
+      "falseAction": false,
+      "note": "execute mined in block 50995435 (success)"
+    }
+  ]
+}

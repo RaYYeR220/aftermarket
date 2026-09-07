@@ -1,0 +1,48 @@
+32/32 correct · 0 false actions · 11/11 traps refused · 6/6 negative controls acted
+
+Id   Result  Kind     Expected                 Keeper engine            Contract                 Action   Repaid       Invariants
+---  ------  -------  -----------------------  -----------------------  -----------------------  -------  -----------  ----------
+S01  pass             LINE_HEALTHY             LINE_HEALTHY             LINE_HEALTHY             refused  -
+S02  pass    trap     LINE_HEALTHY             LINE_HEALTHY             LINE_HEALTHY             refused  -
+S03  pass             LINE_HEALTHY             LINE_HEALTHY             LINE_HEALTHY             refused  -
+S04  pass             LINE_HEALTHY             LINE_HEALTHY             LINE_HEALTHY             refused  -
+S05  pass    control  NONE                     NONE                     NONE                     acted    20647925226
+S06  pass             NONE                     NONE                     NONE                     acted    2472973612
+S07  pass             NONE                     NONE                     NONE                     acted    10734315254
+S08  pass    control  NONE                     NONE                     NONE                     acted    33039937689
+S09  pass    control  NONE                     NONE                     NONE                     acted    20647925226
+S10  pass    control  NONE                     NONE                     NONE                     acted    20647925226
+S11  pass    control  NONE                     NONE                     NONE                     acted    13649173147
+S12  pass             ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S13  pass             ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S14  pass             ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S15  pass             ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S16  pass    trap     ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S17  pass    trap     ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S18  pass             ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         ORACLE_UNTRUSTED         refused  -
+S19  pass    trap     ABOVE_MAX_PER_EXECUTION  ABOVE_MAX_PER_EXECUTION  ABOVE_MAX_PER_EXECUTION  refused  -
+S20  pass             ABOVE_MAX_PER_EXECUTION  ABOVE_MAX_PER_EXECUTION  ABOVE_MAX_PER_EXECUTION  refused  -
+S21  pass    trap     PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   refused  -
+S22  pass    trap     PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   refused  -
+S23  pass             PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   refused  -
+S24  pass             PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   refused  -
+S25  pass    trap     PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   PERMISSION_UNAVAILABLE   refused  -
+S26  pass             NOT_ENROLLED             NOT_ENROLLED             NOT_ENROLLED             refused  -
+S27  pass             NOT_ENROLLED             NOT_ENROLLED             NOT_ENROLLED             refused  -
+S28  pass    trap     POLICY_DISABLED          POLICY_DISABLED          POLICY_DISABLED          refused  -
+S29  pass    trap     INTERVAL_NOT_ELAPSED     INTERVAL_NOT_ELAPSED     INTERVAL_NOT_ELAPSED     refused  -
+S30  pass    trap     LINE_HEALTHY             LINE_HEALTHY             LINE_HEALTHY             refused  -
+S31  pass    trap     NOTHING_TO_REPAY         NOTHING_TO_REPAY         NOTHING_TO_REPAY         refused  -
+S32  pass    control  NONE                     NONE                     NONE                     acted    100
+
+32/32 correct · 0 false actions · 11/11 traps refused · 6/6 negative controls acted
+
+Measure                       Value
+----------------------------  -----
+scenarios                     32
+correct                       32/32
+false actions (hard failure)  0
+traps refused                 11/11
+negative controls acted       6/6
+invariant violations          0
+verdict                       PASS
