@@ -26,7 +26,7 @@ notes/
 ui-prototypes/
 mockups/
 design-ref/
-audit/scratch/
+**/audit/scratch/
 video/
 *.mp4
 
