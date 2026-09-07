@@ -20,8 +20,8 @@ Reference blocks for the `--block` reads:
   had, so these reads are unchanged.
 - **51,010,200** (2026-09-07 19:35:47 UTC) for every credit-engine read. `AftermarketCredit`,
   `AftermarketVault`, `AutoRepayer`, `AftermarketLens` and `AerodromeSwapAdapter` were redeployed on
-  2026-09-07 at 19:26 UTC to close two Regulation-S holes (claims 68-72). The old line was repaid and
-  unwound in full first; [PROOF section 4](PROOF.md) lists both halves.
+  2026-09-07 at 19:26 UTC to close two Regulation-S holes (claims 68-74). The old line was repaid and
+  unwound in full first; [PROOF §4](PROOF.md) lists both halves.
 
 ---
 
@@ -30,7 +30,7 @@ Reference blocks for the `--block` reads:
 | # | claim | tier | evidence |
 |---|---|---|---|
 | 1 | Ten protocol contracts, six production oracles and one negative control are deployed on Base mainnet (chainId 8453) at the addresses published. | `REPRODUCIBLE` | [`contracts/deployments/8453.json`](contracts/deployments/8453.json); `cast code <addr>` |
-| 1b | Five of those ten were redeployed on 2026-09-07 at 19:26 UTC: the credit engine, the vault, the auto-repayer, the lens and the swap adapter. The six oracles, the negative control, the calendar, the gate, the attester registry, the rate model, the oracle factory and the Morpho Blue market did **not** change address. | `REPRODUCIBLE` | Deploy transactions in [PROOF section 4](PROOF.md); the Morpho market references the oracle, not the engine |
+| 1b | Five of those ten were redeployed on 2026-09-07 at 19:26 UTC: the credit engine, the vault, the auto-repayer, the lens and the swap adapter. The six oracles, the negative control, the calendar, the gate, the attester registry, the rate model, the oracle factory and the Morpho Blue market did **not** change address. | `REPRODUCIBLE` | Deploy transactions in [PROOF §4](PROOF.md); the Morpho market references the oracle, not the engine |
 | 2 | All seventeen are source-verified **exact match** on Sourcify, without an explorer API key. | `REPRODUCIBLE` | [docs/verification.md](docs/verification.md); `scripts/verify-sources.sh status` |
 | 3 | Five top-level contracts - `TradingCalendar`, `AttesterRegistry`, `RegSGate`, `SessionRateModel`, `AftermarketOracleFactory` - are also source-verified on Blockscout. | `VERIFIED-LIVE` | Each observed `is_verified: true` on 2026-09-07; [docs/verification.md](docs/verification.md) |
 | 3b | The five redeployed top-level contracts are verified on Blockscout. | **`NOT-CLAIMED`** | They are not. `base.blockscout.com/api` returned `503 Service Temporarily Unavailable` to every request, reads and submissions alike, from the moment they were deployed, so they could not be submitted. All five are `exact_match` on Sourcify with creation **and** runtime matches. [docs/verification.md](docs/verification.md) |

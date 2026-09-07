@@ -402,7 +402,7 @@ We would rather you read these here than find them yourself.
 ```
 contracts/            Foundry project — src, tests, deploy scripts, self-audit
   src/                the ten contracts above
-  test/               unit + invariant suite (255 tests)
+  test/               unit + invariant suite (273 tests)
   test/fork/          live-mainnet and historical-replay suites (base-forge)
   audit/              AUDIT.md and the runnable PoC for every finding
   deployments/8453.json   addresses, constructor args, deploy block

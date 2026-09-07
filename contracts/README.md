@@ -40,7 +40,7 @@ Detail: [`test/fork/README.md`](test/fork/README.md).
 ## Commands
 
 ```bash
-make test                                   # unit suite, no network      -> 255 passed, 0 failed, 1 skipped
+make test                                   # unit suite, no network      -> 273 passed, 0 failed, 1 skipped
 BASE_RPC_URL=<archive> make test-fork       # live + historical mainnet   ->   8 passed, 0 failed
 BASE_RPC_URL=<archive> make test-all        # both
 FOUNDRY_TEST=audit/poc forge test           # the audit's PoCs            ->  43 passed, 0 failed
