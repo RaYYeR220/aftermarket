@@ -128,7 +128,7 @@ key. The ten top-level ones are also on Blockscout.
 | `AftermarketLens` | [`0x5A18BdEB02B30b737a2464E02A2a669BF52bC049`](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) |
 | oracles | NVDAc [`0x1E2b20B4…00b02`](https://repo.sourcify.dev/8453/0x1E2b20B4703F97710c2600eA73179c6CD1E00b02) · AAPLc [`0x6cE58FE7…9a8dc`](https://repo.sourcify.dev/8453/0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc) · METAc [`0xf5Cc0cc9…8dEf2`](https://repo.sourcify.dev/8453/0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2) · GOOGLc [`0x203cDf7e…1C9aA`](https://repo.sourcify.dev/8453/0x203cDf7e33eA0d652cA54f4807c9d2d1d081C9aA) · TSLAc [`0x74058d51…c2C99`](https://repo.sourcify.dev/8453/0x74058d51B3b04Ba09be2aa51ab1CE930Dd3c2C99) · AMZNc [`0x6FEEF51B…3bb5C`](https://repo.sourcify.dev/8453/0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C) |
 | negative control | [`0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58`](https://repo.sourcify.dev/8453/0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58) |
-| Morpho Blue market | `0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479` (created, **empty**) |
+| Morpho Blue market | `0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479` (funded, **tiny**: $0.50 total) |
 
 ```bash
 scripts/verify-sources.sh status      # what each verifier holds, right now
@@ -217,8 +217,10 @@ Because you will find them, and it is better that we say them first.
 1. **No Basescan verification.** No API key. Sourcify covers all 17
    contracts `exact_match`; Blockscout covers the ten top-level ones and structurally cannot cover the
    seven factory oracles.
-2. **The Morpho Blue market is created and empty**, and `AerodromeSwapAdapter` has never been
-   exercised by a mainnet transaction. Both are real integrations; neither has volume.
+2. **The Morpho Blue market is funded but tiny**, and `AerodromeSwapAdapter.swapExactIn` has since
+   fired directly on mainnet (0.4 USDC → 0.00172031 NVDAc, tx `0xcf9150ed…1f9a37`) — though `sweepYield`,
+   the corporate-action path through it, still hasn't, because no B20 has had one. Both integrations
+   are real and exercised; neither has volume. [PROOF §11](PROOF.md#11-morpho-blue-integration).
 3. **Demo eligibility is attested by our own registry, not Coinbase's** — we hold no Coinbase account.
    The Coinbase read path is real and proven against a genuinely attested third party
    (`0xc799DD32…bB6d7`, country `PL`), and the deployed gate reports the difference in its own return

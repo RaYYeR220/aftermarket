@@ -238,8 +238,9 @@ Six production oracles and one negative control, all `AftermarketOracle`, all ve
 | **negative control** (NVDAc @ 25 bps) | [`0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58`](https://repo.sourcify.dev/8453/0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58) |
 
 Morpho Blue market `0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479`
-(USDC / NVDAc / our oracle / AdaptiveCurveIRM / 77% LLTV). Created; **no liquidity supplied** — see
-[CLAIMS.md](CLAIMS.md).
+(USDC / NVDAc / our oracle / AdaptiveCurveIRM / 77% LLTV). Funded with a real supply, collateral
+deposit and borrow — **not with any volume**: one supplier, one borrower, both the deployer, $0.50
+total — see [CLAIMS.md](CLAIMS.md) and [PROOF §11](PROOF.md).
 
 Machine-readable manifest with constructor arguments:
 [`contracts/deployments/8453.json`](contracts/deployments/8453.json).
@@ -361,8 +362,10 @@ We would rather you read these here than find them yourself.
   oracle it installs actually prices the asset it is installed for, which removes the accidental
   version of the worst case, but not the malicious one. This should be a timelocked multisig on day
   one and it is not.
-- **The Morpho Blue market is created but empty.** It proves the `IOracle` integration end to end; it
-  is not a funded market and we do not claim it is one.
+- **The Morpho Blue market is funded but tiny.** A real supply, a real collateral deposit and a real
+  borrow — Morpho's own health check called our `price()` to authorise it — but one supplier, one
+  borrower, both the deployer, $0.50 total. It proves the `IOracle` integration end to end; it is not a
+  liquid market and we do not claim it is one. [PROOF §11](PROOF.md).
 - **Two of the six listed Aerodrome pools are thin.** In the Sunday snapshot AMZNc held about $55k of
   USDC and TSLAc about $67k, against $1.9M for NVDAc. The oracle has a $25,000 depth floor and refuses
   below it, and it measures depth as in-range liquidity rather than a raw balance — but a $25k floor
