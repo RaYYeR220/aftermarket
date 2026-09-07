@@ -51,7 +51,7 @@ evidence is on chain, not in the UI.
 
 One command that prints the live evidence this whole project is built on. It needs Node and pnpm,
 and it bootstraps itself — the first run installs the observer package and builds it, after that it
-starts reading Base immediately:
+starts reading Base immediately. Cold, from the clone above: **42 seconds**, install included.
 
 ```bash
 pnpm verify:onchain
@@ -246,7 +246,8 @@ cd contracts && FOUNDRY_TEST=audit/poc forge test      # 43 passed, 0 failed
 cd contracts && FOUNDRY_TEST=audit/refute forge test   # 39 passed, 0 failed
 ```
 
-Both need the submodules from the top of this file. Cold, on this machine: 25 s and 6 s.
+Both need the submodules from the top of this file. Measured cold from the clone above: 32 s and
+27 s, each of which is mostly the one-time compile of the audit tree.
 
 ---
 
