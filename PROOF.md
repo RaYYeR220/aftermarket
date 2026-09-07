@@ -77,13 +77,13 @@ cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" --rpc-ur
 ```
 
 Morpho's `price()` is scaled `1e36 · 10^(loanDecimals) / 10^(collateralDecimals)` = `1e34` here (USDC
-6, NVDAc 8), so that is **$218.459435** per NVDAc. The full state behind it, read at the head a few
-minutes later (`feedAge` and `divergenceBps` advance every block; everything else is stable):
+6, NVDAc 8), so that is **$218.459435** per NVDAc. The full state behind it, pinned to the same block
+(`feedAge` and `divergenceBps` advance every block; everything else is stable):
 
 ```bash
 cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 \
   "peek()((uint8,uint8,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint256,uint64,uint64))" \
-  --rpc-url $RPC
+  --rpc-url $RPC --block $BLOCK
 ```
 
 | field | value | meaning |
@@ -94,14 +94,19 @@ cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 \
 | `poolPrice` | `232.392563e18` | Aerodrome Slipstream 30-min TWAP, still moving |
 | `markBorrow` | `2.18459435e36` | `min(anchor, pool) × (1 − 500 bps)` = `229.9573 × 0.95` |
 | `markLiquidate` | `2.4401219115e36` | `max(anchor, pool) × (1 + 500 bps)` = `232.392563 × 1.05` |
-| `feedAge` | `238182` s (66.2 h) | |
+| `feedAge` | `238978` s (66.4 h) | |
 | `stalenessBudget` | `360000` s (100 h) | staleness is *not* what is being tested here |
 | `divergenceBps` | `105` | |
 | `divergenceBand` | `300` | 105 < 300, so the sources agree |
 | `haircutBps` | `500` | at the cap: 25 bps base + 15 bps/h × 66 h |
 | `multiplier` | `1e18` | no corporate action in flight |
-| `poolLiquidityUsd` | `1,616,884e18` | well above the $25,000 floor |
+| `poolLiquidityUsd` | `1,611,046e18` | well above the $25,000 floor |
 | `nextOpen` / `lastClose` | `1788874200` / `1788552000` | Tue 09:30 ET / Fri 16:00 ET — **89 h 30 m apart** |
+
+> `feedAge`, `divergenceBps` and `poolLiquidityUsd` all move every block — the pool's TWAP window keeps
+> sliding even when the price it reports doesn't. Drop `--block` and all three will differ from the
+> table above; `verdict`, `session`, `anchorPrice`, `haircutBps` and the calendar timestamps will not,
+> until the next bell or the next haircut tick.
 
 ### 2b. AMZNc refuses
 
@@ -278,17 +283,39 @@ cast receipt 0x6081374c8cc00c0053b0d7ee01e10a08a70bc138a99bb4247b330dc2056727b3 
 
 Steps 3 and 4 call the Aerodrome `SwapRouter` (`0x698cb2b6…3a92f`) directly from the wallet — they are
 how the demo account acquired collateral, not a protocol code path.
-`AerodromeSwapAdapter` is the protocol's own venue and is exercised by `sweepYield` (see
-[MOCKS.md](MOCKS.md)).
 
-Protocol state right now, one call:
+`AerodromeSwapAdapter` is the protocol's own venue, and it has since fired directly on mainnet — not
+through `AftermarketCredit.sweepYield` (that path still needs a multiplier increase that has never
+happened, see [MOCKS §2](MOCKS.md)), but through its own public `swapExactIn` entry point, called
+straight by the deployer:
+
+| step | detail | block | transaction |
+|---|---|---|---|
+| 8 | `AerodromeSwapAdapter.swapExactIn`: 0.400000 USDC → 0.00172031 NVDAc | 50,998,717 | [`0xcf9150ed…1f9a37`](https://base.blockscout.com/tx/0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37) |
+
+```bash
+cast receipt 0xcf9150edf881cc45bb43df9a9ede54af3aedfd6230e338fd9f643dadd51f9a37 --rpc-url $RPC
+# status 1 · to 0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF (AerodromeSwapAdapter)
+# USDC Transfer 400000 in, NVDAc Transfer 172031 out, routed through the same Slipstream
+# router (0x698cb2b6…3a92f) the demo used directly in steps 3 and 4
+```
+
+The adapter contract itself is exercised, on real mainnet liquidity, with a real transfer in and out.
+What still hasn't happened is the specific *trigger* inside `sweepYield` — a B20 corporate action —
+which is a fact about Coinbase's tokens, not about this contract; see [MOCKS §2](MOCKS.md).
+
+Protocol state at the reference block, one call:
 
 ```bash
 cast call 0x5A18BdEB02B30b737a2464E02A2a669BF52bC049 \
-  "protocolView()((uint8,uint64,uint64,uint256,uint256,uint256,uint256,address[]))" --rpc-url $RPC
-# (5, 1788874200, 1788552000, 500011, 2000011, 250002…, 1000003, [6 assets])
-#  ^session CLOSED_HOLIDAY   ^nextOpen  ^lastClose  ^debt   ^supplied  ^utilisation  ^share price
+  "protocolView()((uint8,uint64,uint64,uint256,uint256,uint256,uint256,address[]))" --rpc-url $RPC --block $BLOCK
+# (5, 1788874200, 1788552000, 500011, 2000011, 250004124977312624, 1000005, [6 assets])
+#  ^session CLOSED_HOLIDAY   ^nextOpen  ^lastClose  ^debt   ^supplied  ^utilisation         ^share price
 ```
+
+> `debt`, `supplied`, `utilisation` and `share price` all move — debt accrues every second and the
+> vault's share price ticks up with it. Drop `--block` and every one of the last four fields will have
+> moved by the time you read this; `session`, `nextOpen` and `lastClose` will not, until the next bell.
 
 ---
 
@@ -536,10 +563,62 @@ cast call 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb \
 # 770000000000000000                           lltv   = 77%
 ```
 
-The market is **created and empty** — `market(id)` returns zero supply and zero borrow. It proves the
-`IOracle` integration; it is not a funded market and we do not claim it is one.
+The market is **funded, and Morpho's own health check has authorised a borrow against our oracle.**
+Four direct calls to Morpho Blue (`0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb`) on 2026-09-07, all from
+the deployer, none through `AftermarketCredit` — this exercises the raw `IOracle` integration on its
+own, independent of the app:
 
-Why the refusal is load-bearing there, from Morpho's own audited source:
+| step | action | block | transaction |
+|---|---|---|---|
+| 1 | `supply` 0.500000 USDC | 50,998,739 | [`0xba462df4…2c3553`](https://base.blockscout.com/tx/0xba462df444de272a76396dbba4db1fcec0f275a70ec4574a1ba1af3f972c3553) |
+| 2 | `supplyCollateral` 0.00172031 NVDAc | 50,998,741 | [`0x9b39dbe2…eb78c6`](https://base.blockscout.com/tx/0x9b39dbe2bdd98bf69230cc5e360bfdabc2a8efce2876cb0baad37fb8edeb78c6) |
+| 3 | `borrow` 0.150000 USDC — **reverted, status 0** | 50,998,742 | [`0xe879cd3e…7a0bd2`](https://base.blockscout.com/tx/0xe879cd3ea9d7f1f557d07c54822a52b37ab7e92cbf62846fedd83bd15c7a0bd2) |
+| 4 | `borrow` 0.150000 USDC — succeeded | 50,998,798 | [`0x16d8c7ef…35cabc`](https://base.blockscout.com/tx/0x16d8c7ef8b26a354debdd0391827f10723a797a0d6ef93859376a2e50635cabc) |
+
+Step 3 is in here on purpose. It carries **byte-identical calldata** to step 4 — same `assets`, same
+`onBehalf`, same `receiver` — submitted one block after the collateral deposit landed, and it burned
+its entire gas limit (`gasUsed == gasLimit == 229,436`) without a revert reason surfacing: an
+out-of-gas revert from a gas estimate raced against the collateral deposit, not an unhealthy position —
+the collateral (`172031`) was already on chain by the block step 3 executed in. Two minutes later, the
+identical call resubmitted with a larger gas limit (`250,546`, using `247,415`) succeeded. A protocol
+whose whole argument is "we do not select evidence" does not get to leave the failed one out.
+
+```bash
+cast receipt 0xe879cd3ea9d7f1f557d07c54822a52b37ab7e92cbf62846fedd83bd15c7a0bd2 --rpc-url $RPC
+# status 0 · gasUsed 229436 == gasLimit 229436
+cast receipt 0x16d8c7ef8b26a354debdd0391827f10723a797a0d6ef93859376a2e50635cabc --rpc-url $RPC
+# status 1 · gasUsed 247415 of 250546
+```
+
+Market state now:
+
+```bash
+cast call 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb \
+  "market(bytes32)(uint128,uint128,uint128,uint128,uint128,uint128)" \
+  0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479 --rpc-url $RPC
+# totalSupplyAssets 500000 · totalSupplyShares 500000000000
+# totalBorrowAssets 150000 · totalBorrowShares 150000000000
+# lastUpdate 1788786943 · fee 0
+
+cast call 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb \
+  "position(bytes32,address)(uint256,uint128,uint128)" \
+  0xfef5641f70e19a87e369304daa9ba823754f3db1e6481d757fcae0442cffe479 \
+  0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC
+# supplyShares 500000000000 · borrowShares 150000000000 · collateral 172031
+```
+
+The successful `borrow` in step 4 could not have gone through without Morpho Blue's own `_isHealthy`
+calling `IOracle.price()` on our oracle first — that call site is `Morpho.sol:258`, in the table below,
+and it is Morpho's audited code, not ours, that decided the position was solvent. This is the strongest
+form of the composability claim in this repository: not "our oracle implements the interface", but "a
+protocol we do not control called our `price()` and used the answer to authorise real debt."
+
+The market is small — half a dollar of supply, fifteen cents of debt — and we are not claiming
+otherwise. It is no longer empty, and the borrow that funded it is not the only attempt on record.
+
+The same `price()` call site that just authorised a borrow is also, elsewhere, the one that refuses
+one — that is the mechanism this whole repository is built around, and it is load-bearing precisely
+because it is Morpho's own audited source calling it, not ours:
 
 | function | reads `price()` | `lib/morpho-blue/src/Morpho.sol` |
 |---|---|---|
@@ -566,7 +645,9 @@ Listed here rather than left for you to notice.
   creation bytecode. Three routes tried, all accepted and none landing. They are verified exact-match
   on Sourcify, which matches runtime bytecode. `scripts/verify-sources.sh status` reports the true
   state at the moment you run it; we do not claim a checkmark we did not see.
-- **Hosted at <https://aftermarket-fawn.vercel.app>.** The web app also runs from source
-  (`cd web && pnpm dev`), and every claim on this page is checkable from a terminal without either.
-- **The Morpho market has no liquidity.** See §11.
+- **Hosted at <https://aftermarket-fawn.vercel.app>, source at <https://github.com/RaYYeR220/aftermarket>.**
+  The web app also runs from source (`cd web && pnpm dev`), and every claim on this page is checkable
+  from a terminal without either.
+- **The Morpho market is small.** Half a dollar of supply, fifteen cents of debt — see §11. It is
+  funded and has taken a real borrow, but it is not liquidity in any volume sense.
 - **No third-party audit.** See §10 for exactly what our own audit is and is not.
