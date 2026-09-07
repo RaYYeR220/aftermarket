@@ -17,6 +17,9 @@
       "rev": "fcbae5394ae8ad52d8e580a3477db99814b9d565"
     }
   },
+  "lib/spend-permissions": {
+    "rev": "8aae4dab686de6e7c5f42db59ef4ba0fcd84c721"
+  },
   "lib/verifications": {
     "rev": "831a0d2449a0b0a6c467e87d80a292abc667f9a6"
   }
