@@ -32,7 +32,7 @@ need to run `pnpm install` first — the command installs and builds what it nee
 ## The video — 3 minutes, if you would rather watch than type
 
 **<https://youtu.be/ix3a1fEQlV8>** — 2:56. It walks the measurement, the refusal, the negative control side by side,
-and the two `cast` calls in step 2 being run against mainnet. Everything it shows is reproducible below.
+and the two `cast` calls in step 1 being run against mainnet. Everything it shows is reproducible below.
 
 ---
 
