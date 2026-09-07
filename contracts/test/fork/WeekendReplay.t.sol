@@ -251,6 +251,9 @@ contract WeekendReplayTest is ForkBase {
         _deployStackWith("NVDAc", NVDA, NVDA_FEED);
         _attest(lender);
         _attest(borrower);
+        // The liquidator is attested too: seized collateral is a Reg-S security and `liquidate`
+        // checks the account it is transferred to.
+        _attest(liquidator);
 
         _seedUsdc(lender, 1_000_000e6);
         vm.prank(lender);

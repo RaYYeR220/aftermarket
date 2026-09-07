@@ -48,6 +48,21 @@ import {Session} from "./libraries/Types.sol";
 ///      than seized, and the grace clock is set past the next opening bell, so the borrower always
 ///      gets a real market in which to react. `liquidate` additionally refuses to run unless the
 ///      calendar says a regular session is running right now.
+///
+///      A second table governs the other axis, jurisdiction. The collateral is offered under
+///      Regulation S, so every path by which a B20 token can move INTO an account is gated on
+///      `eligibility`, and no path by which a borrower gets OUT is:
+///
+///      | function                             | checks eligibility | of whom |
+///      |--------------------------------------|--------------------|---------|
+///      | `openLine`, `depositCollateral`      | yes                | `msg.sender` |
+///      | `draw`                               | yes                | `msg.sender` |
+///      | `liquidate`                          | yes                | `receiver`, the account the securities go to |
+///      | `repay`, `repayOnBehalf`, `cure`     | no                 | - |
+///      | `withdrawCollateral`, `realizeBadDebt` | no               | - |
+///
+///      The gate address itself is immutable, so none of that is a promise about an owner key. See
+///      `eligibility` and `liquidate` for the reasoning behind each half.
 contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardTransient {
     using SafeERC20 for IERC20;
 
@@ -136,12 +151,32 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
     /// @notice The trading calendar. The one and only source of "is the US market open".
     ITradingCalendar public immutable calendar;
 
+    /// @notice Reg-S gate consulted on every action that admits a security or new risk.
+    ///
+    /// @dev Immutable, and that is the whole point. A settable gate makes the Regulation-S property
+    ///      a promise about the owner rather than a property of the bytecode: one `setEligibility`
+    ///      transaction installing a contract whose `requireEligible` is a no-op would evaporate the
+    ///      entire design, silently, with no other visible change. Nobody reviewing this protocol
+    ///      should have to take that on trust, so the key cannot do it - not the deployer's key, not
+    ///      a compromised key, not a future multisig's.
+    ///
+    ///      The price is real and is paid deliberately: if the attestation landscape changes, or
+    ///      `RegSGate` needs to be replaced, this engine cannot follow it. The migration is a new
+    ///      engine, which is exactly the amount of ceremony a change to a jurisdiction gate should
+    ///      cost. The safety property is unaffected either way, because the gate is only ever
+    ///      consulted on the way in: `repay`, `cure` and a debt-clearing `withdrawCollateral` read
+    ///      it not at all, so an unreplaceable gate can never trap anybody's collateral.
+    ///
+    ///      What this does NOT make true is stated with equal care in `CLAIMS.md`. The gate address
+    ///      is frozen; the answers behind it are not. `RegSGate` still lets its own owner repoint
+    ///      its fallback registry, and the registry's owner is implicitly an attester, so the
+    ///      jurisdiction of an account can still be asserted by a key rather than proven by
+    ///      Coinbase. `RegSGate.check` reports which of the two happened, as `source`.
+    IEligibility public immutable eligibility;
+
     /*//////////////////////////////////////////////////////////////
                                 STORAGE
     //////////////////////////////////////////////////////////////*/
-
-    /// @notice Reg-S gate consulted on every risk-increasing action.
-    IEligibility public eligibility;
 
     /// @notice Session-aware interest-rate curve.
     ISessionRateModel public rateModel;
@@ -206,7 +241,8 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
     ///                        the reverse link in its own constructor, so a wrong address here can
     ///                        only ever produce a failed deployment, never a live mis-wired system.
     /// @param calendar_       Trading calendar.
-    /// @param eligibility_    Reg-S gate.
+    /// @param eligibility_    Reg-S gate. Immutable once set; see the field's NatSpec for why the
+    ///                        owner deliberately cannot repoint it.
     /// @param rateModel_      Interest-rate model.
     /// @param swapAdapter_    DEX adapter used by `sweepYield`.
     /// @param maxSlippageBps_ Slippage budget for `sweepYield`.
@@ -297,16 +333,6 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
         c.enabled = params.enabled;
 
         emit AssetConfigured(asset, params);
-    }
-
-    /// @notice Replaces the Reg-S gate.
-    /// @dev Attestation providers change; the obligation does not. Swapping the gate cannot reach
-    ///      `repay` or a debt-clearing `withdrawCollateral`, so no compliance change can ever strand
-    ///      a user's collateral.
-    function setEligibility(IEligibility eligibility_) external onlyOwner {
-        if (address(eligibility_) == address(0)) revert ZeroAddress();
-        eligibility = eligibility_;
-        emit EligibilitySet(address(eligibility_));
     }
 
     /// @notice Replaces the interest-rate model.
@@ -618,27 +644,66 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
     ///      written off immediately against `totalDebtAssets` rather than being left to inflate the
     ///      vault's share price with money nobody will ever pay.
     ///
-    ///      **Liquidation is an unrestricted distribution channel, and that is a deliberate
-    ///      decision rather than an oversight.** `openLine`, `depositCollateral` and `draw` are all
-    ///      gated on `eligibility`, because those are the steps that bring a Reg-S tokenized
-    ///      security into the protocol. This function is not: anybody, from anywhere, may repay USDC
-    ///      and receive B20 equities at a discount to the seizure mark. Gating it would shrink the
-    ///      liquidator set to attested non-US persons, and a liquidator set that is too small is how
-    ///      a position becomes unliquidatable and a solvent protocol becomes an insolvent one. The
-    ///      Reg-S property this protocol enforces therefore covers ORIGINATION, not secondary
-    ///      distribution - which is the same scope the B20 token itself has, since it performs no
-    ///      per-transaction jurisdiction check either. It is stated here, and in the public docs, so
-    ///      that nobody has to infer it from the absence of a modifier.
+    ///      **The account that ends up holding the seized securities must be eligible, and the
+    ///      account that pays for them need not be.** That split is the whole design of the gate on
+    ///      this function, and it is what lets liquidation be both compliant and liquid.
+    ///
+    ///      Seizure moves two different things in opposite directions. USDC comes in from
+    ///      `msg.sender`; a Reg-S tokenized security goes out to `receiver`. Only the second leg
+    ///      carries a jurisdiction obligation - the first is a stablecoin payment, which anybody
+    ///      anywhere may make - so `receiver` is checked against `eligibility` and `msg.sender` is
+    ///      deliberately not. In practice that means a searcher's bot, a flash-loan router, a relayer
+    ///      or a multisig's executor can all fund a liquidation with no attestation of their own, as
+    ///      long as the collateral lands with an attested non-US person. The liquidator set is
+    ///      therefore bounded by who may HOLD the security, not by who may send a transaction, which
+    ///      is the widest set the Regulation-S premise permits and answers the real objection to
+    ///      gating this path: that an unliquidatable position turns a solvent protocol into an
+    ///      insolvent one.
+    ///
+    ///      There is no way around it by naming somebody else. `receiver` is the address the tokens
+    ///      are transferred to, and it is the address that is checked; an ineligible caller cannot
+    ///      pass itself, and cannot pass an ineligible third party either. Whether an attested
+    ///      receiver then transfers onward is outside this protocol - the B20 token performs no
+    ///      per-transfer jurisdiction check of its own - but Aftermarket no longer operates the
+    ///      channel. `withdrawCollateral(asset, amount, to)` is left ungated for the opposite and
+    ///      equally deliberate reason: it is an exit, the borrower already holds the position, and a
+    ///      compliance rule that can trap somebody's collateral is a bug rather than a feature.
     /// @param user            Line to liquidate.
     /// @param collateralAsset Asset to seize.
     /// @param repayAssets     USDC the liquidator wishes to repay; at most 50% of the debt.
-    /// @return seized         Raw collateral units transferred to the liquidator.
-    /// @return repaid         USDC actually taken from the liquidator.
+    /// @param receiver        Account the seized collateral is transferred to. Must be eligible.
+    /// @return seized         Raw collateral units transferred to `receiver`.
+    /// @return repaid         USDC actually taken from `msg.sender`.
+    function liquidate(address user, address collateralAsset, uint256 repayAssets, address receiver)
+        external
+        nonReentrant
+        returns (uint256 seized, uint256 repaid)
+    {
+        return _liquidate(user, collateralAsset, repayAssets, receiver);
+    }
+
+    /// @notice Seizes collateral to the caller's own account.
+    /// @dev Identical to the four-argument form with `receiver = msg.sender`, and gated identically:
+    ///      the caller is the one who ends up holding the security, so the caller is the one
+    ///      `eligibility` is asked about. It exists because self-liquidation is the common case and
+    ///      restating one's own address is noise, not because the short form is looser.
     function liquidate(address user, address collateralAsset, uint256 repayAssets)
         external
         nonReentrant
         returns (uint256 seized, uint256 repaid)
     {
+        return _liquidate(user, collateralAsset, repayAssets, msg.sender);
+    }
+
+    /// @dev The single seizure implementation. Both entry points land here, so the eligibility check
+    ///      on the receiving account cannot be reachable from one and not the other.
+    function _liquidate(address user, address collateralAsset, uint256 repayAssets, address receiver)
+        internal
+        returns (uint256 seized, uint256 repaid)
+    {
+        if (receiver == address(0)) revert ZeroAddress();
+        eligibility.requireEligible(receiver);
+
         Session s = _requireSeizable(user, repayAssets);
 
         uint256 repayCapped;
@@ -648,7 +713,7 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
         uint256 repaidShares;
         (repaid, repaidShares) = _burnDebt(user, repayCapped);
 
-        emit Liquidated(user, msg.sender, collateralAsset, repaid, repaidShares, seized);
+        emit Liquidated(user, msg.sender, collateralAsset, repaid, repaidShares, seized, receiver);
 
         Line storage l = lines[user];
         if (l.debtShares != 0 && _isUnrecoverable(user, s)) {
@@ -661,7 +726,7 @@ contract AftermarketCredit is IAftermarketCredit, Ownable2Step, ReentrancyGuardT
 
         usdc.safeTransferFrom(msg.sender, address(this), repaid);
         vaultContract.settle(address(this), repaid);
-        IERC20(collateralAsset).safeTransfer(msg.sender, seized);
+        IERC20(collateralAsset).safeTransfer(receiver, seized);
     }
 
     /// @notice Writes off the debt of a flagged, expired line whose remaining collateral is worth

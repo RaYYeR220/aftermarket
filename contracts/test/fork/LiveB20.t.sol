@@ -8,6 +8,7 @@ import {AftermarketOracle} from "../../src/AftermarketOracle.sol";
 import {IAftermarketCredit} from "../../src/interfaces/IAftermarketCredit.sol";
 import {IAftermarketOracle} from "../../src/interfaces/IAftermarketOracle.sol";
 import {IAggregatorV3} from "../../src/interfaces/IAggregatorV3.sol";
+import {IEligibility} from "../../src/interfaces/IEligibility.sol";
 import {Quote, Session, Verdict} from "../../src/libraries/Types.sol";
 
 import {ForkBase} from "./ForkBase.sol";
@@ -260,6 +261,18 @@ contract LiveB20Test is ForkBase {
         vm.prank(liquidator);
         vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.NotFlagged.selector, borrowerTwo));
         credit.liquidate(borrowerTwo, AMZN, 100e6);
+
+        // Before any of that, against the live gate on real Base mainnet state: an account with no
+        // proven jurisdiction cannot be the one the securities are transferred to, whether it names
+        // itself or is named by an attested caller. This runs ahead of the `NotFlagged` check
+        // above, which is the point - the gate is the first thing `liquidate` consults.
+        vm.prank(unattested);
+        vm.expectRevert(abi.encodeWithSelector(IEligibility.AttestationMissing.selector, unattested));
+        credit.liquidate(borrowerTwo, AMZN, 100e6);
+
+        vm.prank(liquidator);
+        vm.expectRevert(abi.encodeWithSelector(IEligibility.AttestationMissing.selector, unattested));
+        credit.liquidate(borrowerTwo, AMZN, 100e6, unattested);
 
         // --- and the borrower can always cure -------------------------------------------------
         _seedUsdc(borrowerTwo, 5_000e6);

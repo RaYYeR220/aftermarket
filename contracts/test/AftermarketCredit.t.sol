@@ -798,6 +798,105 @@ contract AftermarketCreditTest is AftermarketFixture {
         credit.openLine();
     }
 
+    /// @dev Puts `alice` one call away from being seized: flagged, past her grace period, still
+    ///      underwater, with the US market open.
+    function _seizableLine() internal {
+        _positionWithDebt(alice, 100e8, 8_000e6);
+        nvdaOracle.setMarks(0.9e36, 0.9e36); // threshold 100e8 * 0.9 * 0.70 = $6,300 < $8,000
+
+        vm.prank(keeper);
+        credit.flag(alice);
+
+        vm.warp(credit.graceUntil(alice) + 1);
+        calendar.setSession(Session.REGULAR);
+    }
+
+    /// @notice The finding this closes: liquidation used to hand Reg-S tokenized equities to any
+    ///         caller from any jurisdiction at a discount, which is a distribution channel rather
+    ///         than a risk control, and the protocol was operating it.
+    function test_eligibility_liquidationRefusesAnIneligibleCaller() public {
+        _seizableLine();
+        eligibility.setEligible(keeper, false);
+
+        uint256 nvdaBefore = nvda.balanceOf(keeper);
+        uint256 debtBefore = credit.debtOf(alice);
+
+        vm.prank(keeper);
+        vm.expectRevert(abi.encodeWithSelector(IEligibility.NotEligible.selector, keeper));
+        credit.liquidate(alice, address(nvda), 100e6);
+
+        assertEq(nvda.balanceOf(keeper), nvdaBefore, "no security left the protocol");
+        assertEq(credit.debtOf(alice), debtBefore, "and no debt was repaid");
+    }
+
+    /// @notice Nor can an ineligible caller reach the collateral by naming somebody else, because
+    ///         the address that is checked is the address the tokens are transferred to.
+    function test_eligibility_liquidationRefusesAnIneligibleReceiver() public {
+        _seizableLine();
+        eligibility.setEligible(bob, false);
+
+        vm.prank(keeper);
+        vm.expectRevert(abi.encodeWithSelector(IEligibility.NotEligible.selector, bob));
+        credit.liquidate(alice, address(nvda), 100e6, bob);
+    }
+
+    /// @notice The other half of the design, and the reason the check is on the receiver rather
+    ///         than on `msg.sender`: the USDC leg carries no Reg-S obligation, so a bot, a relayer
+    ///         or a flash-loan router with no attestation of its own can still fund a liquidation
+    ///         for an attested receiver. The liquidator set is bounded by who may hold the security,
+    ///         not by who may send a transaction.
+    function test_eligibility_liquidationAllowsAnIneligiblePayerForAnEligibleReceiver() public {
+        _seizableLine();
+        eligibility.setEligible(keeper, false);
+
+        uint256 bobNvdaBefore = nvda.balanceOf(bob);
+        uint256 keeperUsdcBefore = usdc.balanceOf(keeper);
+
+        vm.prank(keeper);
+        (uint256 seized, uint256 repaid) = credit.liquidate(alice, address(nvda), 100e6, bob);
+
+        assertGt(seized, 0);
+        assertEq(repaid, 100e6);
+        assertEq(nvda.balanceOf(bob) - bobNvdaBefore, seized, "the securities go to the attested receiver");
+        assertEq(keeperUsdcBefore - usdc.balanceOf(keeper), repaid, "the USDC comes from the unattested payer");
+    }
+
+    /// @notice The short form is the long form with `receiver = msg.sender`, gate included.
+    function test_eligibility_liquidationShortFormSeizesToTheCaller() public {
+        _seizableLine();
+
+        uint256 keeperNvdaBefore = nvda.balanceOf(keeper);
+
+        vm.prank(keeper);
+        (uint256 seized,) = credit.liquidate(alice, address(nvda), 100e6);
+
+        assertEq(nvda.balanceOf(keeper) - keeperNvdaBefore, seized);
+    }
+
+    function test_eligibility_liquidationRefusesAZeroReceiver() public {
+        _seizableLine();
+
+        vm.prank(keeper);
+        vm.expectRevert(IAftermarketCredit.ZeroAddress.selector);
+        credit.liquidate(alice, address(nvda), 100e6, address(0));
+    }
+
+    /// @notice The gate itself cannot be swapped out. `RegSGate` refusing to un-restrict the US is
+    ///         worth nothing if one owner transaction can point the engine at a different gate, so
+    ///         the engine holds the address as an immutable and exposes no setter at all.
+    function test_eligibility_theGateIsImmutable() public {
+        assertEq(address(credit.eligibility()), address(eligibility));
+
+        MockEligibility permissive = new MockEligibility();
+
+        vm.prank(owner);
+        (bool ok,) =
+            address(credit).call(abi.encodeWithSignature("setEligibility(address)", address(permissive)));
+        assertFalse(ok, "the engine must expose no way to repoint its Reg-S gate");
+
+        assertEq(address(credit.eligibility()), address(eligibility), "and the gate is unchanged");
+    }
+
     function test_openLine_isRequiredAndSingleUse() public {
         vm.prank(alice);
         vm.expectRevert(abi.encodeWithSelector(IAftermarketCredit.LineNotOpen.selector, alice));
@@ -1604,6 +1703,7 @@ contract AftermarketCreditInvariantTest is AftermarketFixture {
             "debt shares must stay under the virtual-share ceiling on assets"
         );
     }
+
 
     function invariant_debtSharesSumToTheTotal() public view {
         uint256 sum;

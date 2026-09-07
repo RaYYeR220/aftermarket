@@ -69,6 +69,8 @@ interface IAftermarketCredit {
     event AssetConfigured(address indexed asset, AssetParams params);
     event AssetEnabledSet(address indexed asset, bool enabled);
     event AssetCapSet(address indexed asset, uint128 cap);
+    /// @dev Emitted exactly once, from the constructor. The gate is immutable, so there is no
+    ///      second one of these to look for and no `setEligibility` to emit it.
     event EligibilitySet(address indexed eligibility);
     event RateModelSet(address indexed rateModel);
     event SwapAdapterSet(address indexed swapAdapter);
@@ -92,13 +94,19 @@ interface IAftermarketCredit {
         Session session
     );
     event LineCured(address indexed user, address indexed caller, uint256 debtAssets, uint256 seizureThreshold);
+    /// @dev `liquidator` paid the USDC; `receiver` is the account the securities went to and the
+    ///      account the Reg-S gate was asked about. They are usually the same address and are not
+    ///      required to be, so an indexer must read `receiver` to know who ended up holding.
+    ///      `receiver` is unindexed because three indexed topics are already spent on the fields a
+    ///      liquidation is normally filtered by.
     event Liquidated(
         address indexed user,
         address indexed liquidator,
         address indexed collateralAsset,
         uint256 repaidAssets,
         uint256 repaidShares,
-        uint256 seized
+        uint256 seized,
+        address receiver
     );
     event BadDebtRealized(address indexed user, uint256 assets, uint256 shares);
     event YieldSwept(
