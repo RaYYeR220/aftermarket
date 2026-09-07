@@ -1,0 +1,19 @@
+# Every text file in this repository is stored and checked out with LF endings,
+# on every platform. Git for Windows ships with `core.autocrlf=true`, which
+# rewrites LF to CRLF on checkout; `forge fmt --check` then reports a whole-file
+# diff on every Solidity source it touches, on a tree nobody has edited. The
+# blobs here are already LF, so this file changes nothing in history - it only
+# stops the checkout from changing them.
+* text=auto eol=lf
+
+# Assets Git should never inspect for line endings.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.mp4 binary
