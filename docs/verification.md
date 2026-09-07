@@ -17,7 +17,10 @@ scripts/verify-sources.sh status
 
 ## Result
 
-**All 17 contracts: Sourcify `exact_match`.** Verified 2026-09-07, 11:10–11:17 UTC.
+**All 17 contracts: Sourcify `exact_match`.** The twelve unchanged contracts were verified
+2026-09-07 11:10–11:17 UTC; `AerodromeSwapAdapter`, `AftermarketCredit`, `AftermarketVault`,
+`AutoRepayer` and `AftermarketLens` were redeployed and re-verified at 19:2x UTC the same day, after
+the Reg-S changes described in [CLAIMS.md](../CLAIMS.md).
 
 | # | Contract | Address | Sourcify | Blockscout |
 |---|---|---|---|---|
@@ -26,11 +29,11 @@ scripts/verify-sources.sh status
 | 3 | `RegSGate` | [`0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C`](https://repo.sourcify.dev/8453/0xF87B4d3a2f50712d8442aa58Ca0F870E51ddD67C) | exact — creation + runtime | verified |
 | 4 | `SessionRateModel` | [`0x6d5152d81982DEb660736fC514761E18533a2343`](https://repo.sourcify.dev/8453/0x6d5152d81982DEb660736fC514761E18533a2343) | exact — creation + runtime | verified |
 | 5 | `AftermarketOracleFactory` | [`0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A`](https://repo.sourcify.dev/8453/0xD10f2f4a4e9052fD3fa87aAFC529983EdB1c1f8A) | exact — creation + runtime | verified |
-| 6 | `AerodromeSwapAdapter` | [`0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF`](https://repo.sourcify.dev/8453/0xfF81282c6353dC3fB0Ca890Da3cdde9BAFcd68fF) | exact — creation + runtime | verified |
-| 7 | `AftermarketCredit` | [`0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3`](https://repo.sourcify.dev/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3) | exact — creation + runtime | verified |
-| 8 | `AftermarketVault` | [`0x00751166Ce3fa20a4143a1F0D848978Db73bd53f`](https://repo.sourcify.dev/8453/0x00751166Ce3fa20a4143a1F0D848978Db73bd53f) | exact — creation + runtime | verified |
-| 9 | `AutoRepayer` | [`0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A`](https://repo.sourcify.dev/8453/0xEFC7ce780F5030489a027cebde8BeFb7e7ee681A) | exact — creation + runtime | verified |
-| 10 | `AftermarketLens` | [`0x5A18BdEB02B30b737a2464E02A2a669BF52bC049`](https://repo.sourcify.dev/8453/0x5A18BdEB02B30b737a2464E02A2a669BF52bC049) | exact — creation + runtime | verified |
+| 6 | `AerodromeSwapAdapter` | [`0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E`](https://repo.sourcify.dev/8453/0x71283dB3a0b784F0B9e9B0dFc2398877D0A8465E) | exact — creation + runtime | **not submitted — API down** |
+| 7 | `AftermarketCredit` | [`0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93`](https://repo.sourcify.dev/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93) | exact — creation + runtime | **not submitted — API down** |
+| 8 | `AftermarketVault` | [`0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697`](https://repo.sourcify.dev/8453/0x00ee99240Ad9a4b25DD06eAcD1b852C83fbd2697) | exact — creation + runtime | **not submitted — API down** |
+| 9 | `AutoRepayer` | [`0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404`](https://repo.sourcify.dev/8453/0xBe1EA7CA0Fabc93F86C43fBcB25bbB3f2a0A2404) | exact — creation + runtime | **not submitted — API down** |
+| 10 | `AftermarketLens` | [`0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D`](https://repo.sourcify.dev/8453/0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D) | exact — creation + runtime | **not submitted — API down** |
 | 11 | `AftermarketOracle` — NVDAc | [`0x1E2b20B4703F97710c2600eA73179c6CD1E00b02`](https://repo.sourcify.dev/8453/0x1E2b20B4703F97710c2600eA73179c6CD1E00b02) | exact — runtime | **not verified** |
 | 12 | `AftermarketOracle` — AAPLc | [`0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc`](https://repo.sourcify.dev/8453/0x6cE58FE71eD10b82c2C0A9a348E82D1ee6D9a8dc) | exact — runtime | **not verified** |
 | 13 | `AftermarketOracle` — METAc | [`0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2`](https://repo.sourcify.dev/8453/0xf5Cc0cc94ecF4866661373f2aa066af76e08dEf2) | exact — runtime | **not verified** |
@@ -67,6 +70,19 @@ cast call $O "maxMultiplier()(uint256)" --rpc-url $RPC
 `https://base.blockscout.com/api/v2/smart-contracts/<address>` on 2026-09-07. Some of those arrived
 through our direct submissions and some through Blockscout's own Verifier Alliance import from
 Sourcify.
+
+**`not submitted — API down` covers rows 6–10, and it is a fact about Blockscout rather than about
+these contracts.** Those five were redeployed on 2026-09-07 at 19:2x UTC for the Reg-S changes, and
+from that point on `https://base.blockscout.com/api/...` returned `503 Service Temporarily
+Unavailable` to every request — reads and verification submissions alike, for the already-verified
+addresses as well as the new ones. `scripts/verify-sources.sh blockscout` ran and every submission
+came back 503; `scripts/verify-sources.sh status` prints `blockscout=unavailable` for all seventeen
+rows for the same reason. The five predecessors at the addresses this table used to carry *were*
+Blockscout-verified, which is why the column is not simply deleted: the source is identical for the
+vault, the auto-repayer and the lens, and differs only by the Reg-S changes for the engine and the
+adapter. All five are `exact_match` on Sourcify with both a creation and a runtime match, which is
+the stronger of the two records. Re-run `scripts/verify-sources.sh blockscout` when the instance is
+back.
 
 **`not verified` is a real negative, and here is why.** Blockscout has not indexed a creation
 transaction for the seven factory-deployed oracles — its own API returns
@@ -128,7 +144,7 @@ forge verify-contract 0x9a29F81D951fE40ae3C937654bB73f0493EE0Dd9 \
   --chain-id 8453 \
   --verifier sourcify --verifier-url https://sourcify.dev/server
 
-forge verify-contract 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 \
+forge verify-contract 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 \
   src/AftermarketCredit.sol:AftermarketCredit \
   --chain-id 8453 \
   --verifier blockscout --verifier-url https://base.blockscout.com/api \
@@ -157,13 +173,13 @@ Exporting it **empty** (`export BASESCAN_API_KEY=`) is what makes the key-less p
 
 ```bash
 # Sourcify: match status, as JSON
-curl -s https://sourcify.dev/server/v2/contract/8453/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3
+curl -s https://sourcify.dev/server/v2/contract/8453/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93
 
 # Blockscout: name, compiler settings, verification flags
-curl -s https://base.blockscout.com/api/v2/smart-contracts/0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3
+curl -s https://base.blockscout.com/api/v2/smart-contracts/0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93
 
 # The deployed runtime bytecode, straight from the chain
-cast code 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 --rpc-url https://mainnet.base.org | head -c 128
+cast code 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 --rpc-url https://mainnet.base.org | head -c 128
 ```
 
 ## What is not verified, and why
@@ -171,5 +187,6 @@ cast code 0x4dEc94380D35839E137Ca74d26688b8Fdd3bF4b3 --rpc-url https://mainnet.b
 | item | state | reason |
 |---|---|---|
 | Basescan / Etherscan pages | not verified | No API key was available to this project. |
+| Blockscout, the 5 redeployed top-level contracts | not submitted | `base.blockscout.com/api` returned 503 to every request from the moment they were deployed. Verified `exact_match` (creation + runtime) on Sourcify. |
 | Blockscout, the 7 factory oracles | not verified | Blockscout indexed no creation transaction or creation bytecode for a `CREATE2` deploy made from inside the factory, and its verifier matches on creation bytecode. Three submission routes tried; see above. Verified on Sourcify. |
 | Sourcify creation match, the 7 factory oracles | not available | Same root cause — no creation transaction to read. Sourcify's **runtime** match is exact for all seven, which is the one that proves the deployed bytecode is these sources. |
