@@ -240,10 +240,15 @@ Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be mis
     pool and the clock. Pin a block.
 14. **A passing test suite is not an absence of bugs**, and 32 eval scenarios are not proof of keeper
     coverage.
-15. **No attribution claim.** `NEXT_PUBLIC_BUILDER_CODE` is unset, so every transaction this app has
-    ever sent went out without an ERC-8021 suffix. The encoder, the wagmi wiring and the env plumbing
-    are shipped and correct; the value is empty because a Builder Code is claimed in Base's registry
-    rather than derived, and we would rather ship an empty field than a string that encodes cleanly
-    and resolves to nobody. The app **is** registered on base.dev — `aftermarket-fawn.vercel.app`,
-    proved by the `base:app_id` meta tag in `web/src/app/layout.tsx` — and that is deliberately not
-    offered as attribution: an app registration puts no suffix on any transaction.
+15. **No attribution claim for any transaction sent so far, and none pending mint either.**
+    `NEXT_PUBLIC_BUILDER_CODE=bc_ftoaimc9` is now set — issued to the deployer wallet by Base's own
+    agent endpoint (`POST /v1/agents/builder-codes`) and wired through the same encoder and wagmi
+    config as before — but issuance is not minting. As of block `51048364` on Base mainnet,
+    `isRegistered("bc_ftoaimc9")` on Base's ERC-8021 registry (`0x000000BC7…59C8E80`) returns
+    `false`; rerun it, the relayer mints asynchronously. Whatever that check says by the time you run
+    it, **every transaction this app has ever sent — deployment, demo lifecycle, Morpho
+    supply/collateral/borrow — went out before the code existed and is permanently unattributed**,
+    and no transaction is attributed until the code behind its suffix is actually registered. The app
+    **is** registered on base.dev — `aftermarket-fawn.vercel.app`, proved by the `base:app_id` meta
+    tag in `web/src/app/layout.tsx` — and that is deliberately not offered as attribution: an app
+    registration puts no suffix on any transaction.
