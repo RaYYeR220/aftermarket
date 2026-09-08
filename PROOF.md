@@ -16,12 +16,20 @@ Live reads below are pinned to one of two blocks, and each command says which:
 - **`$CBLOCK` = 51,010,200** (2026-09-07 19:35:47 UTC) for §3, the credit engine, which is at a
   new address as of 19:26 UTC.
 
+Both of those are inside the 89 h 30 m Labor Day closure. A third block reads the same contracts on
+the other side of it:
+
+- **`$OPEN` = 51,043,143** (2026-09-08 13:53:53 UTC = 09:53 ET) — **23 minutes after the reopening
+  bell**, the block [`docs/evidence/reopen-2026-09-08.json`](docs/evidence/reopen-2026-09-08.json) is
+  taken at. Used in §2d and §3d.
+
 Drop `--block` to read the head; the numbers that move are called out where they appear.
 
 ```bash
 export RPC=https://mainnet.base.org      # any Base RPC; an archive node for the --block reads
-export BLOCK=50997343                    # the oracle reads, §2
-export CBLOCK=51010200                   # the credit engine reads, §3
+export BLOCK=50997343                    # the oracle reads while the market was shut, §2
+export CBLOCK=51010200                   # the credit engine reads while the market was shut, §3
+export OPEN=51043143                     # the same contracts 23 minutes after the reopen, §2d/§3d
 ```
 
 ---
@@ -114,8 +122,9 @@ cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 \
 
 > `feedAge`, `divergenceBps` and `poolLiquidityUsd` all move every block — the pool's TWAP window keeps
 > sliding even when the price it reports doesn't. Drop `--block` and all three will differ from the
-> table above; `verdict`, `session`, `anchorPrice`, `haircutBps` and the calendar timestamps will not,
-> until the next bell or the next haircut tick.
+> table above. `verdict`, `session`, `anchorPrice`, `haircutBps` and the calendar timestamps held
+> until the next bell — which rang at 09:30 ET on 2026-09-08, and moved every one of them. §2d is
+> that same read, on the other side of it.
 
 ### 2b. AMZNc refuses
 
@@ -136,8 +145,8 @@ execution reverted, data: 0x1047f22b
 cast sig "SourcesDiverged(uint8,uint256,uint256)"      # 0x1047f22b
 ```
 
-AMZNc's Chainlink anchor is frozen at **$257.69** while the pool it trades in prints **$280.88**. The
-oracle will not pick a winner, so it refuses.
+At that block AMZNc's Chainlink anchor was frozen at **$257.69** while the pool it trades in printed
+**$280.88**. The oracle would not pick a winner, so it refused. It is not refusing now — see §2d.
 
 > **The divergence number moves.** It was 886 bps at block 50,991,632, 897 at the pinned block, and
 > 912 in the Sunday snapshot. The pool keeps trading; the anchor does not. The *session*, the *band*
@@ -181,6 +190,93 @@ done
 
 ---
 
+### 2d. The bell rang, and the refusal lifted itself
+
+Every read above is inside the 89 h 30 m closure. The US market reopened at **09:30 ET on Tuesday
+2026-09-08**; `$OPEN` = **51,043,143** is 23 minutes later. Same contracts, same calls, and no
+transaction sent to any of them in between.
+
+```bash
+cast call 0x9a29F81D951fE40ae3C937654bB73f0493EE0Dd9 "session()(uint8)" --rpc-url $RPC --block $OPEN
+```
+
+```
+0
+```
+
+`0` is `REGULAR`. It was `5`, `CLOSED_HOLIDAY`, at `$BLOCK`. Nobody called anything to change it:
+`TradingCalendar` derives the session from `block.timestamp` against an onchain holiday table, so the
+reopen is detected by arithmetic, and it costs no gas and no keeper.
+
+```bash
+cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" --rpc-url $RPC --block $OPEN
+```
+
+```
+2568065370000000000000000000000000000
+```
+
+**AMZNc answers.** The call that reverted `SourcesDiverged(5, 897, 300)` in §2b returns
+**$256.806537**. Nothing in this repository was edited, no parameter was retuned, no contract was
+redeployed. The oracle stopped refusing because the condition it was refusing over ended.
+
+`peek()` on both oracles at `$OPEN`, against the same fields §2a tabulates at `$BLOCK`:
+
+| field | NVDAc @ `$OPEN` | AMZNc @ `$OPEN` | NVDAc @ `$BLOCK` |
+|---|---|---|---|
+| `verdict` | `0` `TRUSTED` | `0` `TRUSTED` | `1` `TRUSTED_CLOSED` |
+| `session` | `0` `REGULAR` | `0` `REGULAR` | `5` `CLOSED_HOLIDAY` |
+| `anchorPrice` | `229.41495e18` | `257.575e18` | `229.9573e18` |
+| `poolPrice` | `231.210437e18` | `256.806537e18` | `232.392563e18` |
+| `markBorrow` | `2.2941495e36` | `2.56806537e36` | `2.18459435e36` |
+| `markLiquidate` | `2.2941495e36` | `2.57575e36` | `2.4401219115e36` |
+| `feedAge` | `384` s | `1050` s | `238978` s (66.4 h) |
+| `stalenessBudget` | `3600` s | `3600` s | `360000` s (100 h) |
+| `divergenceBps` | `78` | `29` | `105` |
+| `divergenceBand` | `500` | `500` | `300` |
+| `haircutBps` | **`0`** | **`0`** | `500` |
+| `poolLiquidityUsd` | `1,090,146e18` | `102,660e18` | `1,611,046e18` |
+| `nextOpen` / `lastClose` | `1788960600` / `1788552000` | same | `1788874200` / `1788552000` |
+
+Three things to read off that table.
+
+**The haircut is zero.** `haircutBps` went from `500` — the cap, 25 bps base plus 15 bps per closed
+hour — to `0`, because gap risk is the distance to the next print and there is no gap while the
+reference is printing. That is the whole of the NVDAc move: `markBorrow` rose from `2.18459435e36`
+to `2.2941495e36`, and the new number is the anchor itself, undiscounted.
+
+**The staleness budget tightened by two orders of magnitude, unprompted.** `3600` s in a regular
+session against `360000` s in a closed one. The same feed that was allowed to be four days old on
+Sunday is allowed to be one hour old now, because the session it is read in changed.
+
+**`markLiquidate` is *not* `max(anchor, pool)` here, and that is deliberate.** NVDAc's pool
+(`231.21`) is above its anchor (`229.41`), yet `markLiquidate` is the anchor. In a regular session
+the pool may pull the borrow mark *down* but may not push the seizure mark *up*: a live anchor needs
+no corroboration, and letting a shallow pool raise the bar to seize is the side an attacker wants.
+Outside the regular session the pool is the only witness there is, so there it may. The argument is
+in a comment above the branch in `AftermarketOracle.sol`.
+
+And the control:
+
+```bash
+cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" --rpc-url $RPC --block $OPEN
+```
+
+```
+execution reverted, data: 0x1047f22b
+  ...0000   session    =  0 (REGULAR)
+  ...004e   divergence = 78 bps
+  ...0019   band       = 25 bps
+```
+
+**The negative control still refuses, in an open session.** That is what closes the argument. If it
+only refused at weekends, it would be evidence that this oracle detects weekends. It refuses here
+because 78 > 25, on a Tuesday morning, against a 384-second-old feed — so what it tests is a
+constructor parameter, and the production oracle's answer at a 500 bps band is a threshold being
+applied rather than a check that is always green.
+
+---
+
 ## 3. The credit engine, live
 
 The demo line at `0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f` holds **0.00515351 NVDAc** and
@@ -203,7 +299,7 @@ execution reverted, data: 0x5033ec12
 
 `0x5033ec12` = `cast sig "Undercollateralized(uint256,uint256)"`.
 
-### 3b. It refuses to seize while the market is shut
+### 3b. It refused to seize while the market was shut
 
 ```bash
 cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" \
@@ -214,10 +310,10 @@ cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" \
 ```
 execution reverted, data: 0x0d007982
   ...07a120   debt             =  500000   ($0.500000)
-  ...104918   seizureThreshold = 1067800   ($1.067800)
+  ...104918   seizureThreshold = 1067288   ($1.067288)
 ```
 
-`0x0d007982` = `cast sig "LineHealthy(uint256,uint256)"`. The seizure threshold is **2.14× the debt**,
+`0x0d007982` = `cast sig "LineHealthy(uint256,uint256)"`. The seizure threshold is **2.13× the debt**,
 because `markLiquidate` is the optimistic mark (`max(anchor, pool) × 1.05`) and the closed-session
 liquidation threshold is 8500 bps against 8000 bps when the market is open. Closing the market makes
 the line *harder* to take, not easier.
@@ -267,6 +363,74 @@ cast call 0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D \
 The lens is deliberately stricter than the engine: it reports `priced = false` and zeroes the numbers
 whenever **any** asset in the basket is unmarkable, so a front end can never quietly render a partial
 basket as a whole one. The engine is the one that does the per-asset arithmetic.
+
+
+### 3d. The same line, after the bell: 562,916 -> 1,363,253
+
+`$OPEN` = 51,043,143. Same account, same two collateral balances, no transaction in between.
+
+```bash
+U=0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" 900000 $U \
+  --from $U --rpc-url $RPC --block $OPEN
+```
+
+```
+execution reverted, data: 0x5033ec12
+  ...155ce8   debtAfter   = 1400040   ($1.400040)
+  ...14cd35   borrowPower = 1363253   ($1.363253)
+```
+
+**562,916 → 1,363,253**, a factor of **2.42**. The arithmetic closes to the unit, and every input is
+a read from the table in §2d or from `assetConfig`:
+
+```
+NVDAc   515351 × 2.29414950 × 0.65   =    768,489     (raw × markBorrow/1e36 × advanceOpenBps)
+AMZNc   356308 × 2.56806537 × 0.65   =    594,764
+                                         ---------
+                                         1,363,253
+```
+
+Two inputs moved and neither of them is a decision:
+
+- The **AMZNc leg went from 0 to 594,764**, because §2d's mark exists. In §3c it contributed nothing
+  — not because it had been written down, but because it could not be marked at all.
+- The **advance rate went from `advanceClosedBps` (5000) to `advanceOpenBps` (6500)**, because the
+  engine reads the calendar on every call. Both are in the same config the deploy set:
+
+```bash
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "assetConfig(address)" \
+  0xb20000000000000000000078ee7ce2fE4908108C --rpc-url $RPC --block $OPEN
+# ...1964 = 6500 advanceOpenBps   ...1388 = 5000 advanceClosedBps
+# ...1f40 = 8000 liqOpenBps       ...2134 = 8500 liqClosedBps
+```
+
+The seizure side moved with it:
+
+```
+flag(U) @ $OPEN     ->   LineHealthy(500040, 1680041)      seizure bar = 3.36 × debt
+flag(U) @ $CBLOCK   ->   LineHealthy(500000, 1067288)      seizure bar = 2.13 × debt
+```
+
+Same reason: AMZNc now counts toward the seizure threshold as well as toward borrowing power. An
+asset the oracle refuses to mark is absent from **both** sides of the ledger, and that symmetry is
+what makes the refusal a freeze rather than a haircut. It never made anyone easier to liquidate, and
+it never made anyone richer.
+
+And the lens, which never reverts:
+
+```bash
+cast call 0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D \
+  "previewDraw(address,uint256)((bool,uint8,uint256,uint256,uint256))" $U 900000 \
+  --rpc-url $RPC --block $OPEN
+# (false, 6, 1400040, 1363253, 11999)      reason 6 = UNDERCOLLATERALIZED
+```
+
+Compare that with §3c's `(false, 5, 1400000, 0, 0)`. The `false` means a different thing on each side
+of the bell. At `$CBLOCK` it was reason **5, `UNPRICED`** — *we will not tell you what this basket is
+worth* — with the numbers deliberately zeroed so a front end could not render a partial basket as a
+whole one. At `$OPEN` it is reason **6, `UNDERCOLLATERALIZED`** — *we will, and it is not enough for
+$0.90.* Same struct, same call, and a refusal replaced by an answer.
 
 ---
 
@@ -367,7 +531,9 @@ cast call 0x27BFaddEc57fF76d498Ef1a7b09C5951DeA6735D \
 
 > `debt`, `supplied`, `utilisation` and `share price` all move — debt accrues every second and the
 > vault's share price ticks up with it. Drop `--block` and every one of the last four fields will have
-> moved by the time you read this; `session`, `nextOpen` and `lastClose` will not, until the next bell.
+> moved by the time you read this. `session`, `nextOpen` and `lastClose` held until the next bell; at
+> `$OPEN` the same call returns session `0` and `nextOpen` `1788960600` (Wed 09:30 ET). `lastClose` is
+> still `1788552000`, because the market is open and has not closed again yet.
 
 ---
 
