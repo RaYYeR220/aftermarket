@@ -20,3 +20,8 @@
 	# reached lib/verifications, so it is skipped by default. Fetch it with
 	# `git submodule update --init --checkout contracts/lib/spend-permissions`.
 	update = none
+	# Those same paths also defeat the checkout itself: on Windows the nested Hardhat fixtures
+	# under lib/smart-wallet cannot be written at all, so a tree that has fetched this submodule
+	# reports working-tree dirt that no commit can ever clear. Ignore that dirt, not the pointer -
+	# a real change to the pinned commit still shows up in `git status`.
+	ignore = dirty
