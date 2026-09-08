@@ -66,6 +66,14 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: siteUrl() },
   robots: { index: true, follow: true },
+  // base.dev proves you own the domain you registered by looking for this tag in the served HTML,
+  // so it has to be in the document head of every route rather than on one page. `other` is the
+  // App Router's escape hatch for a `<meta name=... content=...>` Next has no typed field for;
+  // hand-writing the tag in the body would put it outside <head> and the check would not see it.
+  // This is the base.dev app registration for aftermarket-fawn.vercel.app. It is not an ERC-8021
+  // Builder Code: that is a separate, still-unclaimed thing, and NEXT_PUBLIC_BUILDER_CODE stays
+  // empty until one is actually registered. See README → Attribution.
+  other: { "base:app_id": "6aa012ce227c28e4adffe46b" },
 };
 
 export const viewport: Viewport = {
