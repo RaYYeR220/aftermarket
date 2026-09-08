@@ -29,6 +29,12 @@ import {ForkBase} from "./ForkBase.sol";
 ///      a fresh `updatedAt` at the next opening bell, because `sweepYield` now refuses to send a
 ///      market order while the US market is shut and a fork pinned outside those hours has no
 ///      in-session round to read.
+///
+///      Two tests re-fork onto a pinned historical block instead of the head, because each asserts a
+///      live market condition that has since ended: `test_amznDivergenceFreezesRiskAndSeizureButNot
+///      TheCure` needs AMZNc's sources to be apart, and `test_sweepYield_simulatedMultiplierIncrease`
+///      needs the US market to be shut. Both conditions held on Labor Day and neither holds now, so
+///      both are pinned rather than softened.
 contract LiveB20Test is ForkBase {
     /// @notice USDC the lender puts behind the market.
     uint256 internal constant SUPPLY = 1_000_000e6;
@@ -46,6 +52,18 @@ contract LiveB20Test is ForkBase {
     ///         a 300 bps band. The same block every `--block` read in JUDGES.md and PROOF.md uses.
     /// @dev Needs an archive endpoint, like the rest of `test/fork`.
     uint256 internal constant BLOCK_AMZN_DIVERGED = 50_997_343;
+
+    /// @notice The same Labor Day block, pinned here for a different live fact about it:
+    ///         `TradingCalendar.session()` returned `CLOSED_HOLIDAY`, so there was a shut market for
+    ///         `sweepYield` to refuse to send a market order into.
+    /// @dev Pinned on 2026-09-08. `test_sweepYield_simulatedMultiplierIncrease` used to read the
+    ///      head, which was fine for as long as the head was inside the 89 h 30 m Labor Day closure.
+    ///      At 09:30 ET that morning the market reopened, the head stopped being a closed session,
+    ///      and the `MarketClosed` assertion below started failing on a protocol that was behaving
+    ///      correctly - `sweepYield` reverted `NothingToSweep` instead, because the market was open
+    ///      and the multiplier had not moved. The assertion is unchanged; only the block it is made
+    ///      at is now fixed, for the same reason `BLOCK_AMZN_DIVERGED` is.
+    uint256 internal constant BLOCK_MARKET_CLOSED = BLOCK_AMZN_DIVERGED;
 
     function setUp() public {
         _forkLatest();
@@ -426,6 +444,14 @@ contract LiveB20Test is ForkBase {
     ///      production contract, the sale is a real swap through the real Slipstream router against
     ///      the real pool, and the proceeds really do burn debt shares.
     function test_sweepYield_simulatedMultiplierIncrease() public {
+        _forkAt(BLOCK_MARKET_CLOSED);
+        _deployStack();
+        _attest(lender);
+        _attest(borrower);
+        _attest(borrowerTwo);
+        _attest(liquidator);
+        console2.log("pinned block ", block.number);
+
         _supplyLiquidity();
 
         uint256 collateralAmount = _buyCollateral(NVDA, NVDA_BUY, borrower);
