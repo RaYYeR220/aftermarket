@@ -238,6 +238,12 @@ redeployed. The oracle stopped refusing because the condition it was refusing ov
 | `poolLiquidityUsd` | `1,090,146e18` | `102,660e18` | `1,611,046e18` |
 | `nextOpen` / `lastClose` | `1788960600` / `1788552000` | same | `1788874200` / `1788552000` |
 
+> AMZNc's `divergenceBps` here is `29`, while the snapshot at the same block records **30.5**. They
+> are two implementations of the same measurement, roughly 1 bps apart: the oracle compares its
+> anchor against its own 1800 s pool observation on chain, and the observer computes a 30-minute TWAP
+> off chain. Neither is rounded into the other, and the gap between them is disclosed rather than
+> reconciled. `lastClose` has not moved because the market is open and has not closed again yet.
+
 Three things to read off that table.
 
 **The haircut is zero.** `haircutBps` went from `500` — the cap, 25 bps base plus 15 bps per closed
@@ -364,8 +370,7 @@ The lens is deliberately stricter than the engine: it reports `priced = false` a
 whenever **any** asset in the basket is unmarkable, so a front end can never quietly render a partial
 basket as a whole one. The engine is the one that does the per-asset arithmetic.
 
-
-### 3d. The same line, after the bell: 562,916 -> 1,363,253
+### 3d. The same line, after the bell: 562,916 → 1,363,253
 
 `$OPEN` = 51,043,143. Same account, same two collateral balances, no transaction in between.
 
