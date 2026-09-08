@@ -334,14 +334,18 @@ Because you will find them, and it is better that we say them first.
    fallback registry behind the gate is owner-settable and its owner is implicitly an attester, so a
    jurisdiction can be asserted by our key rather than proven by Coinbase — which is what our own demo
    account does, visibly, as `source = 2`. [CLAIMS.md](CLAIMS.md) claims 68-74.
-6. **No Builder Code, so every transaction this app has sent is unattributed.** The ERC-8021 suffix is
-   wired end to end and set once on the wagmi config; `NEXT_PUBLIC_BUILDER_CODE` is empty. A code
-   cannot be derived or self-minted — Base's registry gates `register()` behind `REGISTER_ROLE` and
-   base.dev is the registrar — and claiming one is a step we have not taken. The app itself *is*
-   registered on base.dev (`aftermarket-fawn.vercel.app`, verified by a `base:app_id` meta tag), but
-   that is a different thing and attributes nothing on chain. Putting an invented string in the env
-   var would produce a structurally valid suffix that resolves to nobody, so the field is empty
-   rather than wrong. [README → Attribution](README.md#attribution-erc-8021-builder-codes).
+6. **A Builder Code is now wired in, but it is not minted, and nothing sent so far is attributed.**
+   `NEXT_PUBLIC_BUILDER_CODE=bc_ftoaimc9` was issued to the deployer wallet by Base's own agent
+   endpoint (`POST /v1/agents/builder-codes`) and the ERC-8021 suffix is wired end to end on the
+   wagmi config. Issuance is not minting: as of block `51048364` on Base mainnet,
+   `isRegistered("bc_ftoaimc9")` on Base's registry (`0x000000BC7…59C8E80`) returns `false` — rerun
+   it, the relayer mints asynchronously and may have caught up by the time you read this. Either way,
+   **every transaction this app has ever sent — the deployment, the demo lifecycle, the Morpho
+   supply/collateral/borrow calls — went out before this code existed and is permanently
+   unattributed**; only transactions sent after the code was set, once it is actually registered,
+   pick up the suffix. The app itself *is* registered on base.dev (`aftermarket-fawn.vercel.app`,
+   verified by a `base:app_id` meta tag), which is a different thing and attributes nothing on chain.
+   [README → Attribution](README.md#attribution-erc-8021-builder-codes).
 7. **The refutation suite was written mid-audit and has been re-pointed since.** Three fixes landed
    under it — `cure` now needs an open market, a sweep is capped at 10% of the position, and the
    multiplier checkpoint is a high-water mark — and each one makes an attack it probed strictly
