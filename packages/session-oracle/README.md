@@ -9,12 +9,17 @@ Chainlink total-return feed only tracks the underlying equity market, which
 is open roughly 40% of the week. Outside those hours the feed's
 `updatedAt` freezes at the last close and does not move — not "moves
 slowly," *does not move at all* — through the night, the weekend, and every
-exchange holiday. Right now, live, the Coinbase AMZN feed is **52 hours
-stale at $257.69** while the Aerodrome pool it should be checked against is
-printing $281.64 — a 9.29% divergence sitting on $62.5k of depth. A protocol
-that reads that feed directly has no way to tell "quiet market" apart from
-"broken feed," and will happily liquidate or over-lend against a number that
-is two trading days old.
+exchange holiday. On Sunday 2026-09-06 at 22:17 ET, at Base block
+50,979,049, the Coinbase AMZN feed was **52 hours stale at $257.69**
+while the Aerodrome pool it should have been checked against was
+printing $281.64 — a 9.29% divergence sitting on $62.5k of depth. That
+gap is a live quantity: it accumulates for as long as the market is
+shut, and it collapses when the market reopens. At block 51,043,143,
+23 minutes after Tuesday's opening bell, the same AMZN divergence was
+30.5 bps and the feed was 1,050 seconds old. A protocol that reads the
+feed directly has no way to tell "quiet market" apart from "broken
+feed," and will happily liquidate or over-lend against a number that is
+two trading days old.
 
 `AftermarketOracle` fuses four onchain sources — the Chainlink anchor, an
 Aerodrome Slipstream TWAP, the B20 `multiplier()` corporate-action signal,
@@ -61,10 +66,13 @@ if (result.ok) {
     contract raised on purpose.
   - `watch(onQuote, { pollingInterval, onError })` → polls `peek()` and
     returns an `unsubscribe` function. Built for live UIs.
-- **`explainVerdict(quote)`** → a plain-English sentence, ready to render:
-  *"Reference feed and pool disagree by 9.29% with only $62.5k of depth —
-  no mark can be defended until the market reopens Monday 09:30 ET."*
-  Covers all six verdicts, open and closed sessions.
+- **`explainVerdict(quote)`** → a plain-English sentence, ready to render.
+  For the AMZNc quote pinned above it rendered: *"Reference feed and pool
+  disagree by 9.29% with only $62.5k of depth — no mark can be defended
+  until the market reopens Tuesday 09:30 ET."* Tuesday and not Monday
+  because 2026-09-07 was Labor Day: `nextOpen` comes from the onchain
+  calendar, not from a weekday assumption. Covers all six verdicts, open
+  and closed sessions.
 - **`morphoPriceToUsd(price, collateralDecimals, loanDecimals)`** and its
   inverse **`usdToMorphoPrice(usd, collateralDecimals, loanDecimals)`** —
   Morpho Blue's `1e36` price scale is a classic footgun (it's `1e36`

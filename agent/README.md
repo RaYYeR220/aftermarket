@@ -88,8 +88,8 @@ SourcesDiverged(session=CLOSED_HOLIDAY, divergence=898bps, band=300bps)
 ```
 
 at block 50 995 435 — the exact line recorded under `liveOracles` in
-[`eval/results/latest.json`](eval/results/latest.json) — because Monday 7 September is Labor Day and
-the market does not reopen until Tuesday 09:30 ET. The keeper decodes that revert through
+[`eval/results/latest.json`](eval/results/latest.json) — because Monday 7 September was Labor Day
+and the market did not reopen until Tuesday 09:30 ET. The keeper decodes that revert through
 [`@aftermarket/session-oracle`](../packages/session-oracle) and puts the sentence in the audit
 trail, next to the plain-English explanation the SDK renders for the verdict.
 
@@ -287,7 +287,9 @@ Being specific about this matters more than the headline number.
   shape the manager can drive.
 - **The six deployed `AftermarketOracle`s.** Read at the forked block and recorded in
   `latest.json` under `liveOracles`, so the scorecard cites the live market state it was produced
-  against. Five answer; AMZNc reverts.
+  against. At the recorded block five answered and AMZNc reverted. After the 2026-09-08 reopen all
+  six answer: AMZNc's `price()` returns 256.81 USD at block 51 043 143, and the other five answered
+  before and still do.
 
 **Deployed fresh, from the same sources as the mainnet contracts:** `AftermarketCredit`,
 `AftermarketVault`, `AutoRepayer`, `AftermarketLens`, and — per scenario — a real
