@@ -467,7 +467,7 @@ because B20 tokens are Rust precompiles rather than EVM contracts and stock `for
 | `BASESCAN_API_KEY` | nothing | — | present in `foundry.toml` for completeness; **all published verification was done key-less** via Sourcify and Blockscout |
 | `NEXT_PUBLIC_SITE_URL` | web app | `http://localhost:3000` | drives OG tags, manifest, SIWE domain check |
 | `NEXT_PUBLIC_BASE_RPC_URL` | web app | `/api/rpc` | where the browser sends its Base reads; unset, they go through the app's own read proxy, which forwards an allowlist of read methods to `BASE_RPC_URL` and keeps any key out of the client bundle |
-| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev. A plain lowercase ASCII string of 1-32 characters (`a-z`, `0-9`, `_`) — **not** hex, e.g. `bc_b7k3p9da`. Unset means transactions go out unattributed, which is what it currently is. Unrelated to the base.dev **app** registration below, which is a meta tag rather than an env var |
+| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev. A plain lowercase ASCII string of 1-32 characters (`a-z`, `0-9`, `_`) — **not** hex. Set to `bc_ftoaimc9`, issued to the deployer by Base's agent endpoint but not yet present in the on-chain registry as of this writing — see [Attribution](#attribution-erc-8021-builder-codes) for the check and what it does and doesn't attribute. Unrelated to the base.dev **app** registration below, which is a meta tag rather than an env var |
 | `SESSION_SECRET` | web app | random per process | signs the session cookie |
 | `KEEPER_ACCOUNTS`, `--account` | keeper | — | pins accounts for the `AutoRepayer` keeper in addition to event discovery |
 
@@ -491,23 +491,45 @@ app attributes nothing on chain: no transaction this app sends carries a suffix 
 
 ### Attribution (ERC-8021 Builder Codes)
 
-The wiring is shipped and the value is empty, so say it plainly: **every transaction this app has
-sent went out unattributed.** `web/src/lib/builder-code.ts` encodes a Builder Code as an ERC-8021
-calldata suffix and sets it once on the wagmi config, so every `useSendTransaction` and
-`useSendCalls` in the app carries it without the call site having to remember — but
-`NEXT_PUBLIC_BUILDER_CODE` is unset and the encoder returns `undefined`.
+`web/src/lib/builder-code.ts` encodes a Builder Code as an ERC-8021 calldata suffix and sets it once
+on the wagmi config, so every `useSendTransaction` and `useSendCalls` in the app carries it without
+the call site having to remember. `NEXT_PUBLIC_BUILDER_CODE` is now set to `bc_ftoaimc9`, issued to
+the deployer wallet (`0x0AF7aFC7…C5c8f`) by Base's own agent endpoint:
 
-It is unset because a Builder Code cannot be derived or self-minted. It is not a hash of a domain or
-an address; it is an arbitrary lowercase string (`bc_b7k3p9da`, `morpho`) claimed first-come in
-Base's own ERC-721 code registry, whose `register()` and `registerWithSignature()` both require
-`REGISTER_ROLE`. Registering the app on base.dev does not mint one — it is a separate step under
-Settings, and we have not taken it. Setting a code we had not registered would produce a structurally
-valid suffix that resolves to nobody, which is worse than an empty one, so the field stays empty
-until a real code goes in it.
+```bash
+curl -s -X POST https://api.base.dev/v1/agents/builder-codes \
+  -H 'content-type: application/json' \
+  -d '{"wallet_address":"0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f"}'
+# → {"builderCode":"bc_ftoaimc9","walletAddress":"0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f"}
+```
 
-To attribute this deployment: claim a code under **Settings → Builder Code** at
-<https://base.dev>, then set `NEXT_PUBLIC_BUILDER_CODE` in `web/.env.local` and in the Vercel
-project. Nothing else changes — no redeploy of a contract, no code edit.
+That endpoint issuing a code is a different step from the code existing in Base's own on-chain
+registry (`0x000000BC7E6457e610fe52Dcc0ca5b3ce59C8E80`) — a Builder Code cannot be derived or
+self-minted, `register()`/`registerWithSignature()` on that registry both gate behind
+`REGISTER_ROLE`, and Base's relayer mints asynchronously after issuance. **As of block `51048364` on
+Base mainnet, `bc_ftoaimc9` is not registered:**
+
+```bash
+cast call 0x000000BC7E6457e610fe52Dcc0ca5b3ce59C8E80 \
+  "isRegistered(string)(bool)" "bc_ftoaimc9" \
+  --rpc-url https://mainnet.base.org --block 51048364
+# → false
+
+cast call 0x000000BC7E6457e610fe52Dcc0ca5b3ce59C8E80 \
+  "payoutAddress(string)(address)" "bc_ftoaimc9" \
+  --rpc-url https://mainnet.base.org --block 51048364
+# → reverts 0xdad7ab01 (code not registered)
+```
+
+Rerun both against the current head — the relayer may have minted the code by the time you read
+this, and if so this paragraph is stale and should say that instead of implying otherwise.
+
+**Whatever the registry says by the time you check it, every transaction this app has sent to date —
+the deployment, the demo account's lifecycle actions, and the Morpho supply, collateral and borrow
+calls in [PROOF.md](PROOF.md) — went out before this code existed and carries no ERC-8021 suffix.
+That is permanent: attribution cannot be applied retroactively to calldata already mined.** Only
+transactions sent after `NEXT_PUBLIC_BUILDER_CODE` was set carry the suffix, and Base's indexer only
+attributes a suffixed transaction to anyone once the code behind it is actually registered.
 
 ---
 
