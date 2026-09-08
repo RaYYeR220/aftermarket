@@ -47,31 +47,44 @@ pnpm verify:onchain      # the same thirteen reads, against Base right now
 ```
 
 Run it. Most of these numbers will have moved, most of them downwards, and inside a regular session
-they should be small across the board. That is the mechanism, not a retraction.
+they should be small across the board. That is the mechanism, not a retraction — and the third
+column of the next table is that prediction, settled.
 
 The pinned block is Sunday night: 54 hours into a three-day weekend, 35 hours before the next
 Chainlink print — a closed market near the worst it gets. The gap is a live quantity that starts
 accumulating at every Friday close and collapses when the reference reopens, so a single reading is
-a point on a distribution rather than a constant. Here is our own re-read 23 hours later, same
-command, no arguments, on Labor Day evening
-([`docs/evidence/holiday-2026-09-07.json`](docs/evidence/holiday-2026-09-07.json)):
+a point on a distribution rather than a constant. Here is the same command, no arguments, run twice
+more: once on Labor Day evening
+([`docs/evidence/holiday-2026-09-07.json`](docs/evidence/holiday-2026-09-07.json)), and once **23
+minutes after the reopening bell** on Tuesday 2026-09-08
+([`docs/evidence/reopen-2026-09-08.json`](docs/evidence/reopen-2026-09-08.json)):
 
-| asset | Sun 22:17 ET · block 50,979,049 | Mon 17:02 ET · block 51,012,807 |
-|---|---:|---:|
-| **AMZNc** | 912 bps | 197 bps |
-| **MSFTc** | 479 bps | 106 bps |
-| **SNDKc** | 221 bps | **312 bps** |
-| **SPCXc** | 154 bps | 145 bps |
-| **MSTRc** | 153 bps | 98 bps |
-| NVDAc | 62 bps | 92 bps |
-| TSLAc | 62 bps | 77 bps |
+| asset | Sun 22:17 ET · block 50,979,049 | Mon 17:02 ET · block 51,012,807 | **Tue 09:53 ET · block 51,043,143** |
+|---|---:|---:|---:|
+| **AMZNc** | 912 bps | 193 bps | **30.5 bps** |
+| **MSFTc** | 479 bps | 106 bps | **3.0 bps** |
+| **SNDKc** | 221 bps | **312 bps** | **1.4 bps** |
+| **SPCXc** | 154 bps | 145 bps | **5.5 bps** |
+| **MSTRc** | 153 bps | 98 bps | **81.6 bps** |
+| NVDAc | 62 bps | 92 bps | 77.8 bps |
+| TSLAc | 62 bps | 77 bps | 5.6 bps |
+| *session* | **closed** | **closed** | **open (REGULAR)** |
+| *feed ages* | 52.8 – 59.9 **hours** | 71.5 – 78.6 **hours** | **16 s – 26 min** |
+| *over 150 bps* | **5** of 10 | **2** of 10 | **0** of 10 |
 
-Two of ten over 150 bps rather than five — and note that it is not a one-way convergence: AMZNc came
-in by 715 bps while **SNDKc widened by 91**. That is the whole argument in one table. The divergence
-is the pool's live opinion of an asset whose reference has stopped moving, so it wanders in both
-directions and nobody knows today which way tomorrow's goes. What does not wander is the structural
-fact underneath: for 135.5 hours of every week there are two prices for the same asset and only one
-of them is being updated.
+The third column is not an argument we are making. It is the same quantity, measured by the same
+command, after the US equity market reopened at 09:30 ET on Tuesday 2026-09-08 following an 89 h 30 m
+closure. Ten of ten priced assets are inside 150 bps; the widest is 81.6. The feed ages fall from
+*days* to *seconds*, because the thing the feed tracks started moving again. Nothing in this
+repository changed between the second column and the third.
+
+It is still not a one-way convergence, and that is the point rather than a blemish. AMZNc came in by
+881 bps across the two readings while **SNDKc widened by 91** in the first one; and at the reopen
+**NVDAc is wider (77.8 bps) than it was on Sunday night (62)**, while **MSTRc's 81.6 bps is wider
+than five of the ten assets were at the weekend**. The divergence is the pool's live opinion of an
+asset whose reference has stopped moving, so it wanders in both directions and nobody knows today
+which way tomorrow's goes. What does not wander is the structural fact underneath: for 135.5 hours of
+every week there are two prices for the same asset and only one of them is being updated.
 
 A lending protocol does not need the gap to be 9.1%. It needs the gap to be **unknowable in
 advance** — which is exactly why this oracle publishes a verdict rather than a number, and why it
@@ -139,9 +152,9 @@ liquidated by, not easier.
 
 ## What that looks like on mainnet
 
-Monday 2026-09-07 is Labor Day. The market closed Friday at 16:00 ET and does not reopen until
+Monday 2026-09-07 was Labor Day. The market closed on Friday at 16:00 ET and did not reopen until
 Tuesday 09:30 ET — **89 h 30 m between two real prints**. Three read-only calls, no wallet, pinned to
-block **50,997,343** so they print these bytes today and in a year:
+block **50,997,343**, in the middle of that gap, so they print these bytes today and in a year:
 
 ```bash
 export RPC=https://mainnet.base.org
@@ -166,17 +179,54 @@ NVDAc token, the **same** Chainlink feed, the **same** Aerodrome pool, the **sam
 green check that could have been red, and it is on chain so you can check that it is.
 
 **Now drop the `--block` and run them again.** The divergences are live, so what you get back depends
-on when you ask, and that is the product rather than a caveat. By Labor Day evening AMZNc's gap had
-closed from 897 bps to 197 and call 2 **answers** — the oracle stopped refusing because the thing it
-was refusing over went away. The negative control at 25 bps still refuses, and will keep refusing
-through almost any market, which is what a control is for. A fixture would give you the same answer
-every time; this does not.
+on when you ask, and that is the product rather than a caveat. A fixture would give you the same
+answer every time; this does not.
+
+### The refusal lifted itself when the market reopened
+
+The market reopened at 09:30 ET on Tuesday 2026-09-08. Here are the same three calls, plus the
+calendar, at block **51,043,143** — 23 minutes after the bell, the block the third column above is
+measured at:
+
+```bash
+export AFTER="--rpc-url $RPC --block 51043143"
+
+# 0. The calendar noticed by itself. Nobody flipped a switch.
+cast call 0x9a29F81D951fE40ae3C937654bB73f0493EE0Dd9 "session()(uint8)" $AFTER
+# 0        (REGULAR; it was 5, CLOSED_HOLIDAY, at block 50,997,343)
+
+# 1. NVDAc: still answers, but the gap-risk haircut is now zero
+cast call 0x1E2b20B4703F97710c2600eA73179c6CD1E00b02 "price()(uint256)" $AFTER
+# 2294149500000000000000000000000000000   ($229.41 — the anchor itself, no haircut)
+
+# 2. AMZNc: it answers again
+cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" $AFTER
+# 2568065370000000000000000000000000000   ($256.81)
+
+# 3. Negative control: still refuses, in an open session
+cast call 0x82eAc15172A7EFd9e06633F9bcaaE5180c12dd58 "price()(uint256)" $AFTER
+# execution reverted: SourcesDiverged(session=0 REGULAR, divergence=78, band=25)
+```
+
+Call 2 is the whole thesis in one line. **AMZNc answers again, and nothing in this repository
+changed.** No key was turned, no parameter was tuned, no contract was redeployed — the oracle stopped
+refusing because the condition it was refusing over ended. A refusal you cannot lift is a bug; a
+refusal that lifts itself when reality changes is a measurement.
+
+Call 1 is the other half. $218.46 at block 50,997,343 became $229.41 here: the 500 bps closed-session
+gap-risk haircut went to zero the moment the reference started printing again, and the mark is now
+the anchor.
+
+Call 3 is why any of this is checkable. The 25 bps control **still refuses, in a `REGULAR` session**,
+at 78 bps of divergence. It is not detecting a weekend. It is detecting that 78 > 25, which means the
+production oracle's answer at 300 bps is a threshold being applied and not a green light that is
+always on.
 
 ### The headline: an unmarkable asset is worth exactly zero borrowing power
 
-The demo line holds two collateral assets: 0.00515351 NVDAc (which the oracle marks) and
-0.00356308 AMZNc (which it refuses to mark). Two archive calls at adjacent blocks, before and after
-the AMZNc collateral deposit landed:
+The demo line holds two collateral assets: 0.00515351 NVDAc and 0.00356308 AMZNc. At the blocks
+below the oracle marked the first and refused the second. Two archive calls at adjacent blocks,
+before and after the AMZNc collateral deposit landed:
 
 ```bash
 # block 50991631 — before the AMZNc deposit
@@ -194,12 +244,42 @@ cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" \
 borrowing power. The AMZNc is still held, still withdrawable, still unseizable — it simply does not
 count. That is the design in one number: an outage is a freeze, never a loss and never a licence.
 
-And in the other direction, `flag()` on that same line reverts `LineHealthy(500007, 1069403)` — the
-seizure threshold (1.07 USDC) is more than **double** the debt (0.50 USDC), because `markLiquidate`
-is the optimistic mark and the closed-session liquidation threshold (8500 bps) is *higher* than the
-open one (8000 bps).
+And in the other direction, `flag()` on that same line at block 51,010,200 reverts
+`LineHealthy(500000, 1067288)` — the seizure threshold (1.067 USDC) is **2.13×** the debt
+(0.500 USDC), because `markLiquidate` is the optimistic mark and the closed-session liquidation
+threshold (8500 bps) is *higher* than the open one (8000 bps).
 
-Full reproduction commands, with every current value: **[PROOF.md](PROOF.md)**.
+#### And then the market reopened, and the same line got its power back
+
+Same position, same collateral, nothing touched. Block **51,043,143**, 23 minutes after Tuesday's
+bell:
+
+```bash
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" \
+  900000 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f \
+  --from 0x0AF7aFC75Db0CdEC3019CbAf4C67f311fEEC5c8f --rpc-url $RPC --block 51043143
+# Undercollateralized(1400040, 1363253)
+```
+
+**562,916 → 1,363,253.** The same basket supports **2.42×** the borrowing power it did on Labor Day,
+and the arithmetic closes to the unit, from two on-chain marks and one config read:
+
+```
+NVDAc   515351 × 2.29414950 (markBorrow/1e36) × 0.65 (advanceOpenBps)  =   768,489
+AMZNc   356308 × 2.56806537 (markBorrow/1e36) × 0.65 (advanceOpenBps)  =   594,764
+                                                                          ---------
+                                                                          1,363,253
+```
+
+Two things moved and both are the mechanism, not a change of mind. The AMZNc leg went from
+contributing **0** to contributing **594,764**, because the oracle will mark it again. And the
+advance rate went from `advanceClosedBps` (5000) to `advanceOpenBps` (6500), because the session
+changed under a contract that reads the calendar every call.
+
+The refusal was never a write-down and never a permanent haircut. It was a hold, and it ended on
+schedule, by itself.
+
+Full reproduction commands, both sides of the bell, with every value: **[PROOF.md](PROOF.md)**.
 
 ---
 
@@ -293,10 +373,12 @@ Machine-readable manifest with constructor arguments:
 [`contracts/deployments/8453.json`](contracts/deployments/8453.json).
 Verification record and how to re-run it: [`docs/verification.md`](docs/verification.md).
 
-> **Verified where, exactly.** All 17 are `exact_match` on Sourcify. Five of the top-level contracts
-> are also on Blockscout; the other five were redeployed on 2026-09-07 for the Reg-S changes below and
-> could not be submitted, because `base.blockscout.com/api` has been returning 503 to every request
-> since.   The seven oracles are **not** on Blockscout and could not be made to be: they
+> **Verified where, exactly.** All 17 are `exact_match` on Sourcify, re-checked on 2026-09-08. A
+> minority of the top-level contracts are also on Blockscout; the ones redeployed on 2026-09-07 for
+> the Reg-S changes below could not be submitted, because `base.blockscout.com/api` was returning 503
+> to every request throughout the verification window. Do not trust a count here — run
+> `scripts/verify-sources.sh status`, which asks both verifiers directly.
+> The seven oracles are **not** on Blockscout and could not be made to be: they
 > were created by `CREATE2` from inside the factory, Blockscout indexed no creation transaction for
 > them, and its verifier matches on creation bytecode. Sourcify matches *runtime* bytecode too, which
 > is the match that proves the code running at those addresses is the code in this repository.
@@ -385,9 +467,27 @@ because B20 tokens are Rust precompiles rather than EVM contracts and stock `for
 | `BASESCAN_API_KEY` | nothing | — | present in `foundry.toml` for completeness; **all published verification was done key-less** via Sourcify and Blockscout |
 | `NEXT_PUBLIC_SITE_URL` | web app | `http://localhost:3000` | drives OG tags, manifest, SIWE domain check |
 | `NEXT_PUBLIC_BASE_RPC_URL` | web app | `/api/rpc` | where the browser sends its Base reads; unset, they go through the app's own read proxy, which forwards an allowlist of read methods to `BASE_RPC_URL` and keeps any key out of the client bundle |
-| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev. A plain lowercase ASCII string of 1-32 characters (`a-z`, `0-9`, `_`) — **not** hex, e.g. `bc_b7k3p9da`. Unset means transactions go out unattributed, which is what it currently is |
+| `NEXT_PUBLIC_BUILDER_CODE` | web app | — | ERC-8021 Builder Code from base.dev. A plain lowercase ASCII string of 1-32 characters (`a-z`, `0-9`, `_`) — **not** hex, e.g. `bc_b7k3p9da`. Unset means transactions go out unattributed, which is what it currently is. Unrelated to the base.dev **app** registration below, which is a meta tag rather than an env var |
 | `SESSION_SECRET` | web app | random per process | signs the session cookie |
 | `KEEPER_ACCOUNTS`, `--account` | keeper | — | pins accounts for the `AutoRepayer` keeper in addition to event discovery |
+
+### base.dev app registration
+
+The deployed app is registered on **base.dev**, and the domain check is satisfied by a meta tag in
+the document head of every route:
+
+```html
+<meta name="base:app_id" content="6aa012ce227c28e4adffe46b" />
+```
+
+It is declared in `web/src/app/layout.tsx` as `metadata.other`, which is the App Router's escape
+hatch for a `<meta>` tag Next has no typed field for. Writing it into the body instead would put it
+outside `<head>` and the check would not see it. The registered domain is
+**`aftermarket-fawn.vercel.app`**.
+
+**This is not a Builder Code.** An app registration and an ERC-8021 Builder Code are two different
+things that happen to share a registrar, and the next section is about the other one. Registering the
+app attributes nothing on chain: no transaction this app sends carries a suffix because of it.
 
 ### Attribution (ERC-8021 Builder Codes)
 
@@ -400,10 +500,10 @@ calldata suffix and sets it once on the wagmi config, so every `useSendTransacti
 It is unset because a Builder Code cannot be derived or self-minted. It is not a hash of a domain or
 an address; it is an arbitrary lowercase string (`bc_b7k3p9da`, `morpho`) claimed first-come in
 Base's own ERC-721 code registry, whose `register()` and `registerWithSignature()` both require
-`REGISTER_ROLE`. base.dev is the registrar, and getting one means signing in there with a wallet:
-free, about two minutes, and not something a repository can do for you. Setting a code we had not
-registered would produce a structurally valid suffix that resolves to nobody, which is worse than
-an empty one, so the field stays empty until a real code goes in it.
+`REGISTER_ROLE`. Registering the app on base.dev does not mint one — it is a separate step under
+Settings, and we have not taken it. Setting a code we had not registered would produce a structurally
+valid suffix that resolves to nobody, which is worse than an empty one, so the field stays empty
+until a real code goes in it.
 
 To attribute this deployment: claim a code under **Settings → Builder Code** at
 <https://base.dev>, then set `NEXT_PUBLIC_BUILDER_CODE` in `web/.env.local` and in the Vercel
