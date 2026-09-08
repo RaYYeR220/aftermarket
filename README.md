@@ -373,17 +373,17 @@ Machine-readable manifest with constructor arguments:
 [`contracts/deployments/8453.json`](contracts/deployments/8453.json).
 Verification record and how to re-run it: [`docs/verification.md`](docs/verification.md).
 
-> **Verified where, exactly.** All 17 are `exact_match` on Sourcify, re-checked on 2026-09-08. A
-> minority of the top-level contracts are also on Blockscout; the ones redeployed on 2026-09-07 for
-> the Reg-S changes below could not be submitted, because `base.blockscout.com/api` was returning 503
-> to every request throughout the verification window. Do not trust a count here — run
-> `scripts/verify-sources.sh status`, which asks both verifiers directly.
+> **Verified where, exactly.** All 17 are `exact_match` on Sourcify, re-checked on 2026-09-08.
+> Blockscout holds the ten top-level contracts, including the five redeployed on 2026-09-07 for the
+> Reg-S changes below, which went in once its API came back from a long run of 503s.
 > The seven oracles are **not** on Blockscout and could not be made to be: they
 > were created by `CREATE2` from inside the factory, Blockscout indexed no creation transaction for
 > them, and its verifier matches on creation bytecode. Sourcify matches *runtime* bytecode too, which
 > is the match that proves the code running at those addresses is the code in this repository.
 > **Basescan will show all of these as unverified** — we had no API key, so every verification here is
-> key-less. `scripts/verify-sources.sh status` prints the live truth from both verifiers.
+> key-less. `scripts/verify-sources.sh status` prints the live truth from both verifiers, and is the
+> number to trust over any count written down here; Blockscout's API rate-limits hard enough that a
+> single pass over seventeen addresses can come back short.
 
 ---
 

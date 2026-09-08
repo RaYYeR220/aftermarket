@@ -192,10 +192,11 @@ Full workings both sides of the bell: [PROOF §2d and §3d](PROOF.md).
 ## 3 · The addresses — 30 seconds
 
 All seventeen deployed contracts are source-verified **exact match** on Sourcify, with no explorer API
-key — re-checked on 2026-09-08 with `scripts/verify-sources.sh status`, which prints the live truth
-from both verifiers. A minority are also on Blockscout: the contracts redeployed on 2026-09-07 could
-not be submitted, because `base.blockscout.com/api` was returning 503 to every request throughout the
-verification window. Sourcify is the record that matters here, because it matches *runtime* bytecode.
+key — re-checked on 2026-09-08 with `scripts/verify-sources.sh status`, which asks both verifiers
+directly and is the number to trust over any count written down here. Blockscout holds the ten
+top-level contracts but not the seven oracles, which were created by `CREATE2` and have no creation
+transaction for its verifier to match on. Sourcify matches *runtime* bytecode, which is the match
+that proves the code running at those addresses is the source in this repository.
 
 | | |
 |---|---|
