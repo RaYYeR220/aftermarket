@@ -4,7 +4,7 @@ Two suites, both run against live Base mainnet state:
 
 | file | what it proves |
 |---|---|
-| `LiveB20.t.sol` | the whole protocol working against the real B20 tokens, the real Chainlink feeds and the real Aerodrome pools, at the chain head |
+| `LiveB20.t.sol` | the whole protocol working against the real B20 tokens, the real Chainlink feeds and the real Aerodrome pools, at the chain head — except for the two tests pinned to a closed-market block |
 | `WeekendReplay.t.sol` | the closed-market mechanism, replayed at real historical Base blocks across the 2026 Labor Day weekend |
 | `ForkBase.sol` | the shared fixture: mainnet addresses, one deployment routine, and the collateral-acquisition helpers |
 
@@ -89,13 +89,27 @@ Forks Base at the current head and deploys the entire stack — `TradingCalendar
 `AftermarketCredit`, `AftermarketVault` — wired to the real B20 tokens, the real Chainlink
 aggregators and the real Slipstream pools discovered from the factory at run time.
 
-One exception: `test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` re-forks at block
-**50,997,343**. Its subject is a live market state rather than a property of the code — AMZNc's pool
+Two exceptions, both re-forking at block **50,997,343** — Labor Day, 2026-09-07 12:27:13 UTC, with
+the US market shut. Each pins that block for a different live fact about it.
+
+`test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` (constant `BLOCK_AMZN_DIVERGED`) pins it
+because its subject is a live market state rather than a property of the code — AMZNc's pool
 disagreeing with its frozen anchor by more than the session band — and that state comes and goes. It
 held all through the 2026-09-05 close and by Monday evening had closed to 145 bps, inside the 300
 bps band, at which point the oracle correctly went back to marking AMZNc and an unpinned assertion
 would have failed. A test that only passes while a market is dislocated will eventually report a
-fault that is not there, so this one is pinned. Every other test in the file runs at head.
+fault that is not there, so this one is pinned.
+
+`test_sweepYield_simulatedMultiplierIncrease` (constant `BLOCK_MARKET_CLOSED`, defined as
+`= BLOCK_AMZN_DIVERGED`) pins the same block for its session: `TradingCalendar.session()` returned
+`CLOSED_HOLIDAY` there, so there was a shut market for `sweepYield` to refuse to send a market order
+into. This test used to read the head, and the pin was forced on 2026-09-08. At 09:30 ET that
+morning the market reopened, the head stopped being a closed session, and the `MarketClosed`
+assertion started failing against a protocol that was behaving correctly — `sweepYield` reverted
+`NothingToSweep` instead, because the market was open and the multiplier had not moved. The
+assertion itself is unchanged; only the block it is made at is now fixed.
+
+Every other test in the file runs at head.
 
 | test | what it proves |
 |---|---|
@@ -103,8 +117,8 @@ fault that is not there, so this one is pinned. Every other test in the file run
 | `test_borrowerDrawsAgainstRealNvdaCollateralAtTheLiveMark` | NVDAc bought through the live pool is posted, and the USDC drawn is exactly `collateral x markBorrow / 1e36 x advanceRate / 1e4` against the live oracle mark — one unit more is refused |
 | `test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` | **the headline.** See below. |
 | `test_borrowerRepaysAndWithdrawsEndingWhole` | draw, repay, withdraw: the borrower gets every raw unit of NVDAc back, the lender redeems at least what they supplied, and a withdrawal that would leave the line undercollateralised is refused |
-| `test_peekIsCoherentForEveryConfiguredAsset` | `peek()` answers for all six markets and never reverts, including for the one whose `price()` is refusing to quote |
-| `test_sweepYield_simulatedMultiplierIncrease` | self-repaying collateral: the sold slice, the oracle-derived slippage floor, the real swap and the debt burn. **Contains the one simulated input in the file** — see the disclosure below. |
+| `test_peekIsCoherentForEveryConfiguredAsset` | `peek()` answers for all six markets and never reverts — including, whenever there is one, an asset whose `price()` is refusing to quote. Runs at head, so which assets those are depends on the market when you run it; on 2026-09-08 after the reopen, none of the six were refusing |
+| `test_sweepYield_simulatedMultiplierIncrease` | self-repaying collateral: the sold slice, the oracle-derived slippage floor, the real swap and the debt burn. Pinned at 50,997,343. **Contains the one simulated input in the file** — see the disclosure below. |
 
 ### The AMZNc case
 
@@ -145,19 +159,22 @@ in the basket. The asymmetry is what keeps it safe: the dark leg is worth nothin
 **and** cannot be seized by anybody, so the exposure is bounded to losing priceable collateral at a
 defensible price, behind the full flag-and-grace notice period.
 
-This test reads the chain head, so it asserts a live market condition: it holds while the US market
-is shut and the AMZNc pool is off its frozen anchor, and it will stop holding once the aggregator
-prints again at the next opening bell. The same divergence is pinned permanently at fixed historical
-blocks in `WeekendReplay.t.sol`, which asserts AMZNc inside the band on the Saturday (67 bps) and
-outside it on the Sunday (960 bps) at blocks 50,910,127 and 50,953,327.
+This test asserts a live market condition rather than a property of the code: it held while the US
+market was shut and the AMZNc pool was off its frozen anchor, and it stopped holding once the
+aggregator printed again at the next opening bell. That is precisely why it re-forks at 50,997,343
+instead of reading the head — and the bell has since rung. At block 51,043,143, 23 minutes into the
+2026-09-08 session, AMZNc's divergence was 30.5 bps and `price()` answered 256.81 USD. The same
+divergence is pinned permanently at fixed historical blocks in `WeekendReplay.t.sol`, which asserts
+AMZNc inside the band on the Saturday (67 bps) and outside it on the Sunday (960 bps) at blocks
+50,910,127 and 50,953,327.
 
 ---
 
 ## `WeekendReplay.t.sol` — the mechanism over real time
 
 The replayed window is the 2026 Labor Day weekend: the US market closed on **Friday 2026-09-04 at
-16:00 ET** and does not reopen until **Tuesday 2026-09-08 at 09:30 ET**, because Monday 2026-09-07 is
-an exchange holiday. That is an 89.5-hour gap between two real prints.
+16:00 ET** and did not reopen until **Tuesday 2026-09-08 at 09:30 ET**, because Monday 2026-09-07
+was an exchange holiday. That is an 89.5-hour gap between two real prints.
 
 ### Pinned blocks
 
@@ -175,11 +192,14 @@ weekend.
 | 50,953,327 | 1788696001 | 2026-09-06 12:00:01 | Sun 08:00:01 | `CLOSED_WEEKEND` |
 | 50,974,927 | 1788739201 | 2026-09-07 00:00:01 | Sun 20:00:01 | `CLOSED_WEEKEND` |
 
-Two further rows are produced by `vm.warp` on top of block 50,974,927, because the chain has not got
-there yet: Monday 2026-09-07 12:00 ET (Labor Day) and Tuesday 2026-09-08 09:30 ET (the next bell).
-Warping advances `block.timestamp` and nothing else — the feed's `updatedAt`, the pool's
-observations and the pool's depth stay exactly as they stood at that block. Rows are labelled
-`pin <n>` or `warp` in the printed table so the two can never be confused.
+Two further rows are produced by `vm.warp` on top of block 50,974,927, because the chain had not
+reached those timestamps when the table was generated: Monday 2026-09-07 12:00 ET (Labor Day) and
+Tuesday 2026-09-08 09:30 ET (the next bell). The chain has since passed both, and they remain warped
+rows — the position carried through the timeline cannot survive a re-fork, for the reason given
+under `test_weekendMechanismFlagGraceAndSeizure` below. Warping advances `block.timestamp` and
+nothing else — the feed's `updatedAt`, the pool's observations and the pool's depth stay exactly as
+they stood at that block. Rows are labelled `pin <n>` or `warp` in the printed table so the two can
+never be confused.
 
 ### The timeline
 
