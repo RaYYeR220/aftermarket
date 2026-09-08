@@ -22,6 +22,9 @@ Reference blocks for the `--block` reads:
   `AftermarketVault`, `AutoRepayer`, `AftermarketLens` and `AerodromeSwapAdapter` were redeployed on
   2026-09-07 at 19:26 UTC to close two Regulation-S holes (claims 68-74). The old line was repaid and
   unwound in full first; [PROOF §4](PROOF.md) lists both halves.
+- **51,043,143** (2026-09-08 13:53:53 UTC = 09:53 ET) for every read taken **after** the US market
+  reopened, 23 minutes past the bell. Both blocks above sit inside the 89 h 30 m Labor Day closure;
+  this one sits outside it, against the same contracts at the same addresses. Claims 32b-32g.
 
 ---
 
@@ -45,10 +48,10 @@ Reference blocks for the `--block` reads:
 |---|---|---|---|
 | 8 | `NVDAc.price()` returns `2184594350000000000000000000000000000` ($218.459435). | `REPRODUCIBLE` at block 50,997,343 | [PROOF §2a](PROOF.md) |
 | 9 | That mark equals `min(anchor, pool) × (1 − 500 bps)` = `229.9573 × 0.95`, exactly. | `REPRODUCIBLE` | `peek()` at the same block — [PROOF §2a](PROOF.md) |
-| 10 | `AMZNc.price()` reverts `SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence, band=300)`, selector `0x1047f22b`. | `REPRODUCIBLE` | [PROOF §2b](PROOF.md); `cast sig "SourcesDiverged(uint8,uint256,uint256)"` |
+| 10 | `AMZNc.price()` reverts `SourcesDiverged(session=5 CLOSED_HOLIDAY, divergence, band=300)`, selector `0x1047f22b`. | `REPRODUCIBLE` at block 50,997,343 | [PROOF §2b](PROOF.md); `cast sig "SourcesDiverged(uint8,uint256,uint256)"`. **Not a standing claim:** the same call at block 51,043,143, after the reopen, returns `2568065370000000000000000000000000000` — claim 32c |
 | 11 | The AMZNc divergence figure is a specific fixed number. | **`NOT-CLAIMED`** | It moves with the pool: **886** bps at block 50,991,632, **897** at 50,997,343, **912** in the Sunday snapshot. The session, the band and the refusal are what is stable. |
 | 12 | The negative control reverts `SourcesDiverged(5, 105, 25)` on **NVDAc**, the same asset and block where the production oracle answers. | `REPRODUCIBLE` at block 50,997,343 | [PROOF §2c](PROOF.md) |
-| 13 | The gap between two real Chainlink prints across this weekend is 89 h 30 m (Fri 16:00 ET → Tue 09:30 ET). | `REPRODUCIBLE` | `nextOpen` − `lastClose` = 1788874200 − 1788552000 = 322,200 s, from `peek()` — [PROOF §2a](PROOF.md) |
+| 13 | The gap between the two real Chainlink prints either side of the 2026 Labor Day weekend was 89 h 30 m (Fri 2026-09-04 16:00 ET → Tue 2026-09-08 09:30 ET). | `REPRODUCIBLE` | `nextOpen` − `lastClose` = 1788874200 − 1788552000 = 322,200 s, from `peek()` — [PROOF §2a](PROOF.md) |
 | 14 | Deployed oracle parameters are twap 1800 s, haircut 25 bps + 15 bps/h capped at 500 bps, depth floor $25,000, multiplier bounds `[0.01e18, 1e21]`. | `REPRODUCIBLE` | `cast call <oracle> "baseHaircutBps()(uint16)"` etc. — every one is a public immutable |
 
 ## The credit engine, live
@@ -56,7 +59,7 @@ Reference blocks for the `--block` reads:
 | # | claim | tier | evidence |
 |---|---|---|---|
 | 15 | `draw(900000, self)` reverts `Undercollateralized(debtAfter, 562916)`, selector `0x5033ec12`. | `REPRODUCIBLE` at block 51,010,200 | [PROOF §3a](PROOF.md) |
-| 16 | `flag(self)` reverts `LineHealthy(debt, seizureThreshold)`, selector `0x0d007982`, with the threshold more than double the debt. | `REPRODUCIBLE` at block 51,010,200 | [PROOF §3b](PROOF.md) |
+| 16 | `flag(self)` reverts `LineHealthy(500000, 1067288)`, selector `0x0d007982` — a seizure bar 2.13× the debt. | `REPRODUCIBLE` at block 51,010,200 | [PROOF §3b](PROOF.md). At block 51,043,143 the same call returns `LineHealthy(500040, 1680041)`, a bar of 3.36× — claim 32f |
 | 17 | **Borrowing power was 562,916 before depositing $1.00 of AMZNc and 562,916 after.** | `REPRODUCIBLE` | Two archive calls at blocks 51,009,976 and 51,009,977, both returning `Undercollateralized(900000, 562916)` — [PROOF §3c](PROOF.md). The same measurement on the retired engine, at blocks 50,991,631 and 50,991,632, returned the same two numbers |
 | 18 | All 562,916 of that comes from the NVDAc leg: `515351 × 2.18459435 × 0.50 = 562916.45`. | `REPRODUCIBLE` | Arithmetic over on-chain values — [PROOF §3c](PROOF.md) |
 | 19 | An asset whose oracle refuses to mark contributes zero borrowing power **and** zero seizure threshold, and can never be seized, while remaining held and withdrawable. | `REPRODUCIBLE` | `AftermarketCredit._borrowPower` / `_seizureThreshold` / `_quoteSeizure`; `audit/poc/BasketVeto.t.sol` (4/4); `test/fork/LiveB20.t.sol::test_amznDivergenceFreezesRiskAndSeizureButNotTheCure` |
@@ -87,8 +90,26 @@ Reference blocks for the `--block` reads:
 |---|---|---|---|
 | 30 | At Base block 50,979,049 (Sun 2026-09-06 22:17 ET) five of the ten priced tokenized stocks were more than 150 bps from their Chainlink feed: AMZNc 912, MSFTc 479, SNDKc 221, SPCXc 154, MSTRc 153. | `REPRODUCIBLE` | [`docs/evidence/weekend-2026-09-06.json`](docs/evidence/weekend-2026-09-06.json) — block-pinned |
 | 31 | Feed ages in that snapshot ran from 52.8 h (MSTRc) to 59.9 h (GOOGLc). | `REPRODUCIBLE` | Same file |
-| 32 | The same divergences are present right now. | `VERIFIED-LIVE` | `pnpm verify:onchain` regenerates the table at the current head. The pattern persists; the numbers move. |
+| 32 | Divergences of that size are present right now. | **`NOT-CLAIMED`** | They were a property of a closed market and they are not a standing condition. At block 51,043,143, 23 minutes into the session that followed, the widest of the ten was 81.6 bps and none was over 150 — claim 32b. `pnpm verify:onchain` regenerates the table at the current head, and what it prints depends entirely on when you run it. |
 | 33 | These divergences represent a mispricing, an arbitrage, or a fault in Chainlink's feeds. | **`NOT-CLAIMED`** | The feeds are doing exactly what a total-return equity reference is specified to do. The gap is structural, not a bug in anyone's product. |
+
+### The market reopened, and the same reads changed
+
+The US equity market reopened at 09:30 ET on Tuesday 2026-09-08 after the 89 h 30 m closure every
+claim above was measured inside. These are the same commands against the same addresses, 23 minutes
+later, at block **51,043,143**. No contract was redeployed, no parameter retuned, no transaction
+sent to any of them in between.
+
+| # | claim | tier | evidence |
+|---|---|---|---|
+| 32b | All ten priced assets were inside 150 bps: MSTRc 81.6, NVDAc 77.8, GOOGLc 48.8, METAc 32.6, AAPLc 31.8, AMZNc 30.5, TSLAc 5.6, SPCXc 5.5, MSFTc 3.0, SNDKc 1.4. | `REPRODUCIBLE` at block 51,043,143 | [`docs/evidence/reopen-2026-09-08.json`](docs/evidence/reopen-2026-09-08.json) — block-pinned |
+| 32c | Feed ages in that snapshot ran from **16 s** (METAc) to **1,564 s** (MSFTc), against 52.8-59.9 **hours** in the Sunday snapshot. | `REPRODUCIBLE` at block 51,043,143 | Same file, against claim 31 |
+| 32d | `TradingCalendar.session()` returns `0` (`REGULAR`), unaided. | `REPRODUCIBLE` at block 51,043,143 | [PROOF §2d](PROOF.md). The session is derived from `block.timestamp` against an onchain holiday table; no transaction, keeper or owner call is involved |
+| 32e | **`AMZNc.price()` answers again**, returning `2568065370000000000000000000000000000` ($256.806537), and `haircutBps` on both live oracles is `0`. | `REPRODUCIBLE` at block 51,043,143 | [PROOF §2d](PROOF.md). This is claim 10 ceasing to hold, on its own, because the condition it described ended |
+| 32f | Borrowing power on the unchanged demo line went **562,916 → 1,363,253** (2.42×), and the seizure bar **1,067,288 → 1,680,041** (2.13× → 3.36× the debt). | `REPRODUCIBLE` at blocks 51,010,200 and 51,043,143 | [PROOF §3d](PROOF.md). Decomposes exactly: `515351 × 2.29414950 × 0.65 = 768489` plus `356308 × 2.56806537 × 0.65 = 594764` |
+| 32g | **The 25 bps negative control still reverts, in an open session**: `SourcesDiverged(session=0 REGULAR, divergence=78, band=25)`. | `REPRODUCIBLE` at block 51,043,143 | [PROOF §2d](PROOF.md). It is testing a constructor parameter, not detecting a weekend |
+| 32h | The convergence was uniform, or one-directional. | **`NOT-CLAIMED`** | It was neither. NVDAc is **wider** at the reopen (77.8 bps) than it was on Sunday night (62), and MSTRc's 81.6 bps is wider than five of the ten assets were at the weekend. The gap wanders both ways; what does not wander is that it exists for 135.5 hours a week |
+| 32i | This will happen the same way at the next close. | **`NOT-CLAIMED`** | Three snapshots are three points, not a distribution. The mechanism is what reproduces; the magnitudes are whatever the market does |
 
 ## The weekend replay
 
@@ -222,5 +243,7 @@ Everything above tagged `NOT-CLAIMED`, gathered in one place so it cannot be mis
 15. **No attribution claim.** `NEXT_PUBLIC_BUILDER_CODE` is unset, so every transaction this app has
     ever sent went out without an ERC-8021 suffix. The encoder, the wagmi wiring and the env plumbing
     are shipped and correct; the value is empty because a Builder Code is claimed in Base's registry
-    through a base.dev account rather than derived, and we would rather ship an empty field than a
-    string that encodes cleanly and resolves to nobody.
+    rather than derived, and we would rather ship an empty field than a string that encodes cleanly
+    and resolves to nobody. The app **is** registered on base.dev — `aftermarket-fawn.vercel.app`,
+    proved by the `base:app_id` meta tag in `web/src/app/layout.tsx` — and that is deliberately not
+    offered as attribution: an app registration puts no suffix on any transaction.

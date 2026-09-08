@@ -82,16 +82,28 @@ cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" $AT
 `0x1047f22b` is `SourcesDiverged(uint8,uint256,uint256)` — check with
 `cast sig "SourcesDiverged(uint8,uint256,uint256)"`.
 
-That block is Labor Day. The last real Chainlink print was Friday 16:00 ET; the next is Tuesday
-09:30 ET. **89 h 30 m apart.** AMZNc's frozen anchor says $257.69 while the pool it actually trades
-in prints $280.88. Aftermarket's oracle will not pick a winner, so it refuses — and because Morpho
-Blue reads `price()` only in `borrow`, `withdrawCollateral` and `liquidate`, that refusal freezes new
-risk and freezes seizure while leaving repayment open.
+That block is Labor Day. The last real Chainlink print was Friday 16:00 ET; the next was Tuesday
+09:30 ET. **89 h 30 m apart.** At that block AMZNc's frozen anchor said $257.69 while the pool it
+actually trades in printed $280.88. Aftermarket's oracle would not pick a winner, so it refused — and
+because Morpho Blue reads `price()` only in `borrow`, `withdrawCollateral` and `liquidate`, that
+refusal freezes new risk and freezes seizure while leaving repayment open.
 
-**Drop `--block` and the second call may well answer.** It is a live measurement, not a fixture: by
-Labor Day evening AMZNc's divergence had closed from 897 bps to 197, inside the 300 bps band, and
-the oracle went back to marking it. The refusal ends when the condition ends, which is the only
-behaviour worth shipping. `pnpm verify:onchain` in step 0 prints the current gap for all thirteen.
+**Now run the second call at block 51,043,143 — 23 minutes after Tuesday's opening bell.**
+
+```bash
+cast call 0x6FEEF51B6352895B17AEf6a4F36F8A9b76A3bb5C "price()(uint256)" \
+  --rpc-url $RPC --block 51043143
+# 2568065370000000000000000000000000000     ($256.806537)
+```
+
+**It answers.** Same address, same code, same everything — nothing in this repository was edited, no
+parameter retuned, no contract redeployed. The oracle stopped refusing because the condition it was
+refusing over ended, at 09:30 ET, on schedule. `TradingCalendar.session()` at that block returns `0`,
+`REGULAR`, worked out from `block.timestamp` against an onchain holiday table with no keeper and no
+owner call. A refusal you cannot lift is a bug; a refusal that lifts itself is a measurement.
+
+`pnpm verify:onchain` in step 0 prints the current gap for all thirteen, whatever the market is doing
+when you run it.
 
 ### Now the one that makes it falsifiable — 30 seconds
 
@@ -104,9 +116,11 @@ That is an `AftermarketOracle` on the **same NVDAc**, the **same feed**, the **s
 calendar**, at the **same block** as the one that answered in the first command. One constructor
 number differs: the divergence band, 25 bps instead of 300. It refuses where production answers.
 
-Run this one **without** `--block` too. It still refuses, and it will keep refusing through almost
-any market, because 25 bps is narrower than the gap between a frozen anchor and a live pool ever
-gets. That is what a control is for.
+Run it at the reopen block too: `SourcesDiverged(session=0 REGULAR, divergence=78, band=25)`. **It
+still refuses, in an open session, on a 384-second-old feed.** If it only refused at weekends it
+would be evidence that this oracle detects weekends. It refuses because 78 > 25, which means what it
+tests is a constructor parameter — and the production answer at 300 bps is a threshold being applied
+rather than a check that is always green. That is what a control is for.
 
 A negative control that fires is the difference between "our check passed" and "our check works".
 
@@ -136,24 +150,52 @@ An asset the oracle refuses to mark contributes exactly zero borrowing power —
 withdrawable, and unseizable. The arithmetic closes with nothing left over: `515351` raw NVDAc ×
 `2.18459435` × the 50% closed-session advance rate = `562916.45`.
 
-And the other direction, at the head:
+And the other direction:
 
 ```bash
-cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" $U --from $U --rpc-url $RPC
-# LineHealthy(debt = 500000, seizureThreshold = 1067800)     # at block 51,010,200; both move
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "flag(address)" $U --from $U \
+  --rpc-url $RPC --block 51010200
+# LineHealthy(debt = 500000, seizureThreshold = 1067288)     # both move; pinned here
 ```
 
-The bar to seize this line is **2.14× the debt**, because `markLiquidate` is the optimistic mark and
+The bar to seize this line was **2.13× the debt**, because `markLiquidate` is the optimistic mark and
 the closed-session liquidation threshold (8500 bps) is *higher* than the open one (8000 bps). Shutting
 the market makes the position harder to take, not easier.
+
+### Then the market reopened, and the same line got its power back — 30 seconds
+
+```bash
+cast call 0xD5d4A08CA636C06a60Ea4e6266807cb8D994Ee93 "draw(uint256,address)" 900000 $U \
+  --from $U --rpc-url $RPC --block 51043143
+# Undercollateralized(1400040, 1363253)
+```
+
+**562,916 → 1,363,253.** Same account, same two collateral balances, no transaction in between; block
+51,043,143 is 23 minutes after Tuesday's bell. The basket supports **2.42×** what it did on Labor
+Day, and it decomposes exactly:
+
+```
+NVDAc   515351 × 2.29414950 × 0.65 (advanceOpenBps)   =    768,489
+AMZNc   356308 × 2.56806537 × 0.65                    =    594,764
+                                                           ---------
+                                                           1,363,253
+```
+
+The AMZNc leg went from **0** to **594,764** because the oracle will mark it again, and the advance
+rate went from 5000 to 6500 bps because the engine reads the calendar on every call. The refusal was
+never a write-down and never a permanent haircut. It was a hold, and it ended by itself.
+
+Full workings both sides of the bell: [PROOF §2d and §3d](PROOF.md).
 
 ---
 
 ## 3 · The addresses — 30 seconds
 
 All seventeen deployed contracts are source-verified **exact match** on Sourcify, with no explorer API
-key. Five of the top-level ones are also on Blockscout; the five redeployed on 2026-09-07 could
-not be submitted, because Blockscout's API has been returning 503 to every request since.
+key — re-checked on 2026-09-08 with `scripts/verify-sources.sh status`, which prints the live truth
+from both verifiers. A minority are also on Blockscout: the contracts redeployed on 2026-09-07 could
+not be submitted, because `base.blockscout.com/api` was returning 503 to every request throughout the
+verification window. Sourcify is the record that matters here, because it matches *runtime* bytecode.
 
 | | |
 |---|---|
@@ -294,9 +336,11 @@ Because you will find them, and it is better that we say them first.
 6. **No Builder Code, so every transaction this app has sent is unattributed.** The ERC-8021 suffix is
    wired end to end and set once on the wagmi config; `NEXT_PUBLIC_BUILDER_CODE` is empty. A code
    cannot be derived or self-minted — Base's registry gates `register()` behind `REGISTER_ROLE` and
-   base.dev is the registrar — so it takes a base.dev account we do not have. Putting an invented
-   string there would produce a structurally valid suffix that resolves to nobody, so the field is
-   empty rather than wrong. [README → Attribution](README.md#attribution-erc-8021-builder-codes).
+   base.dev is the registrar — and claiming one is a step we have not taken. The app itself *is*
+   registered on base.dev (`aftermarket-fawn.vercel.app`, verified by a `base:app_id` meta tag), but
+   that is a different thing and attributes nothing on chain. Putting an invented string in the env
+   var would produce a structurally valid suffix that resolves to nobody, so the field is empty
+   rather than wrong. [README → Attribution](README.md#attribution-erc-8021-builder-codes).
 7. **The refutation suite was written mid-audit and has been re-pointed since.** Three fixes landed
    under it — `cure` now needs an open market, a sweep is capped at 10% of the position, and the
    multiplier checkpoint is a high-water mark — and each one makes an attack it probed strictly
